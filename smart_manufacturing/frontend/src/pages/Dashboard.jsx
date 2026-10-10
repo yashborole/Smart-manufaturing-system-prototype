@@ -129,6 +129,11 @@ const Dashboard = () => {
                 <div>
                     {/* Plant Logo / Title */}
                     <div className="sidebar-brand">
+                        <img 
+                            src="/factory-logo.svg" 
+                            alt="Factory Logo" 
+                            style={{ width: 34, height: 34, borderRadius: 6, flexShrink: 0 }} 
+                        />
                         <div>
                             <div className="sidebar-brand-title">Factory MES</div>
                             <div className="sidebar-brand-sub">Manufacturing System</div>

@@ -36,32 +36,36 @@ const JOB_STATUS_COLOR = {
 
 const THEMES = {
   dark: {
-    pageBg: '#090a0f',
-    headerBg: 'rgba(15,17,26,0.85)',
-    cardBg: '#121420',
-    cardBorder: 'rgba(255,255,255,0.07)',
+    pageBg: '#0b1120',
+    headerBg: 'rgba(15, 23, 42, 0.92)',
+    cardBg: '#1e293b',
+    cardBorder: 'rgba(255,255,255,0.08)',
     textPrimary: '#f8fafc',
     textSecondary: '#94a3b8',
     textMuted: '#64748b',
-    accent: '#8b5cf6',
-    accentBg: 'rgba(139,92,246,0.12)',
-    inputBg: '#1a1d2d',
-    inputBorder: 'rgba(255,255,255,0.12)',
-    timelineBg: '#0f111d',
+    accent: '#0284c7',          // Professional Industrial Steel Blue
+    accentHover: '#0369a1',
+    accentBg: 'rgba(2, 132, 199, 0.12)',
+    inputBg: '#0f172a',
+    inputBorder: '#334155',
+    timelineBg: '#0f172a',
+    bgImage: 'url(/factory-blueprint-bg.svg)'
   },
   light: {
-    pageBg: '#f8fafc',
-    headerBg: 'rgba(255,255,255,0.9)',
+    pageBg: '#f1f5f9',
+    headerBg: 'rgba(255,255,255,0.95)',
     cardBg: '#ffffff',
-    cardBorder: 'rgba(0,0,0,0.08)',
+    cardBorder: '#e2e8f0',
     textPrimary: '#0f172a',
     textSecondary: '#475569',
     textMuted: '#94a3b8',
-    accent: '#7c3aed',
-    accentBg: 'rgba(124,58,237,0.08)',
-    inputBg: '#f1f5f9',
-    inputBorder: 'rgba(0,0,0,0.12)',
+    accent: '#0284c7',          // Professional Enterprise Blue
+    accentHover: '#0369a1',
+    accentBg: 'rgba(2, 132, 199, 0.08)',
+    inputBg: '#ffffff',
+    inputBorder: '#cbd5e1',
     timelineBg: '#f8fafc',
+    bgImage: 'none'
   }
 };
 
@@ -317,17 +321,22 @@ export default function JobScheduling() {
     <div style={{
       minHeight: '100vh',
       background: T.pageBg,
+      backgroundImage: T.bgImage,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundAttachment: 'fixed',
       color: T.textPrimary,
       fontFamily: "'Inter', -apple-system, sans-serif",
       display: 'flex',
-      flexDirection: 'column'
+      flexDirection: 'column',
+      position: 'relative'
     }}>
       {/* Toast Alert */}
       {toast && (
         <div style={{
           position: 'fixed', bottom: 24, right: 24, zIndex: 9999,
           padding: '12px 20px', borderRadius: 10,
-          background: toast.type === 'error' ? '#ef4444' : (toast.type === 'info' ? '#3b82f6' : '#22c55e'),
+          background: toast.type === 'error' ? '#dc2626' : (toast.type === 'info' ? '#0284c7' : '#16a34a'),
           color: '#fff', fontSize: 13, fontWeight: 600,
           boxShadow: '0 8px 30px rgba(0,0,0,0.3)',
           display: 'flex', alignItems: 'center', gap: 8,
@@ -338,7 +347,7 @@ export default function JobScheduling() {
         </div>
       )}
 
-      {/* Top Header */}
+      {/* Top Header Navbar */}
       <header style={{
         padding: '14px 28px',
         background: T.headerBg,
@@ -355,30 +364,28 @@ export default function JobScheduling() {
             style={{
               display: 'flex', alignItems: 'center', gap: 6,
               background: 'none', border: `1px solid ${T.cardBorder}`,
-              borderRadius: 8, padding: '7px 12px',
-              color: T.textSecondary, cursor: 'pointer', fontSize: 13, fontWeight: 500
+              borderRadius: 6, padding: '7px 12px',
+              color: T.textSecondary, cursor: 'pointer', fontSize: 13, fontWeight: 600
             }}
           >
             <ArrowLeft size={15} /> Dashboard
           </button>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{
-              width: 34, height: 34, borderRadius: 10,
-              background: 'linear-gradient(135deg, #8b5cf6, #6366f1)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 0 15px rgba(139,92,246,0.3)'
-            }}>
-              <CalendarClock size={19} color="#fff" />
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <img 
+              src="/factory-logo.svg" 
+              alt="Factory Emblem" 
+              style={{ width: 36, height: 36, borderRadius: 8, boxShadow: '0 2px 8px rgba(2, 132, 199, 0.25)' }} 
+            />
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 17, fontWeight: 700, letterSpacing: '-0.3px' }}>Live Job Scheduling</span>
+                <span style={{ fontSize: 17, fontWeight: 700, letterSpacing: '-0.3px', color: T.textPrimary }}>Job Scheduling</span>
                 <span style={{
-                  fontSize: 10, fontWeight: 700, color: '#8b5cf6',
-                  background: 'rgba(139,92,246,0.15)', padding: '2px 8px', borderRadius: 20
+                  fontSize: 11, fontWeight: 700, color: '#0284c7',
+                  background: 'rgba(2, 132, 199, 0.12)', border: '1px solid rgba(2, 132, 199, 0.25)',
+                  padding: '2px 8px', borderRadius: 4
                 }}>
-                  MES DISPATCH
+                  PRODUCTION PLANNER
                 </span>
               </div>
               <div style={{ fontSize: 12, color: T.textSecondary, display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -411,9 +418,9 @@ export default function JobScheduling() {
             title="Check and dispatch due scheduled jobs immediately"
             style={{
               display: 'flex', alignItems: 'center', gap: 6,
-              background: 'rgba(139,92,246,0.12)', border: '1px solid rgba(139,92,246,0.3)',
-              borderRadius: 8, padding: '7px 14px',
-              color: '#a78bfa', fontSize: 13, fontWeight: 600, cursor: 'pointer'
+              background: 'rgba(2, 132, 199, 0.1)', border: '1px solid rgba(2, 132, 199, 0.3)',
+              borderRadius: 6, padding: '7px 14px',
+              color: '#0284c7', fontSize: 13, fontWeight: 600, cursor: 'pointer'
             }}
           >
             <Zap size={14} /> Auto-Dispatch Check
@@ -423,9 +430,9 @@ export default function JobScheduling() {
             onClick={() => navigate('/kiosk')}
             style={{
               display: 'flex', alignItems: 'center', gap: 6,
-              background: 'rgba(255,255,255,0.05)', border: `1px solid ${T.cardBorder}`,
-              borderRadius: 8, padding: '7px 14px',
-              color: T.textPrimary, fontSize: 13, fontWeight: 500, cursor: 'pointer'
+              background: T.inputBg, border: `1px solid ${T.cardBorder}`,
+              borderRadius: 6, padding: '7px 14px',
+              color: T.textPrimary, fontSize: 13, fontWeight: 600, cursor: 'pointer'
             }}
           >
             <Gauge size={14} /> Machine Kiosk
@@ -435,20 +442,20 @@ export default function JobScheduling() {
             onClick={() => openCreateForMachine(machines[0]?.id || '')}
             style={{
               display: 'flex', alignItems: 'center', gap: 6,
-              background: '#8b5cf6', border: 'none',
-              borderRadius: 8, padding: '8px 16px',
+              background: '#0284c7', border: 'none',
+              borderRadius: 6, padding: '8px 16px',
               color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-              boxShadow: '0 4px 15px rgba(139,92,246,0.3)'
+              boxShadow: '0 2px 8px rgba(2, 132, 199, 0.3)'
             }}
           >
             <Plus size={15} /> Schedule Job
           </button>
 
           <button
-            onClick={() => setIsDark(d => !d)}
+            onClick={toggleTheme}
             style={{
-              width: 36, height: 36, borderRadius: 8,
-              background: 'none', border: `1px solid ${T.cardBorder}`,
+              width: 36, height: 36, borderRadius: 6,
+              background: T.inputBg, border: `1px solid ${T.cardBorder}`,
               color: T.textSecondary, cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center'
             }}
@@ -567,9 +574,9 @@ export default function JobScheduling() {
                 onClick={() => setViewMode('matrix')}
                 style={{
                   padding: '6px 14px', borderRadius: 6, border: 'none',
-                  background: viewMode === 'matrix' ? '#8b5cf6' : 'transparent',
+                  background: viewMode === 'matrix' ? '#0284c7' : 'transparent',
                   color: viewMode === 'matrix' ? '#fff' : T.textSecondary,
-                  fontSize: 12, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s'
+                  fontSize: 12, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s ease'
                 }}
               >
                 Fleet Board Matrix
@@ -578,9 +585,9 @@ export default function JobScheduling() {
                 onClick={() => setViewMode('timeline')}
                 style={{
                   padding: '6px 14px', borderRadius: 6, border: 'none',
-                  background: viewMode === 'timeline' ? '#8b5cf6' : 'transparent',
+                  background: viewMode === 'timeline' ? '#0284c7' : 'transparent',
                   color: viewMode === 'timeline' ? '#fff' : T.textSecondary,
-                  fontSize: 12, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s'
+                  fontSize: 12, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s ease'
                 }}
               >
                 Unified Timeline
@@ -866,7 +873,7 @@ export default function JobScheduling() {
                                       style={{
                                         flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
                                         padding: '4px 8px', borderRadius: 6, border: 'none',
-                                        background: '#8b5cf6', color: '#fff', fontSize: 11, fontWeight: 600,
+                                        background: '#0284c7', color: '#fff', fontSize: 11, fontWeight: 600,
                                         cursor: machine.status === 'Running' ? 'not-allowed' : 'pointer',
                                         opacity: machine.status === 'Running' ? 0.5 : 1
                                       }}
@@ -1057,7 +1064,7 @@ export default function JobScheduling() {
                                 style={{
                                   display: 'flex', alignItems: 'center', gap: 4,
                                   padding: '5px 10px', borderRadius: 6, border: 'none',
-                                  background: '#8b5cf6', color: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer'
+                                  background: '#0284c7', color: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer'
                                 }}
                               >
                                 <Play size={11} /> Run Now
@@ -1086,7 +1093,7 @@ export default function JobScheduling() {
                                 style={{
                                   display: 'flex', alignItems: 'center', gap: 4,
                                   padding: '5px 10px', borderRadius: 6, border: `1px solid ${T.inputBorder}`,
-                                  background: T.inputBg, color: '#8b5cf6', fontSize: 11, fontWeight: 600, cursor: 'pointer'
+                                  background: T.inputBg, color: '#0284c7', fontSize: 11, fontWeight: 600, cursor: 'pointer'
                                 }}
                               >
                                 <Calendar size={11} /> Schedule
@@ -1291,8 +1298,9 @@ export default function JobScheduling() {
                   disabled={actionLoading}
                   style={{
                     padding: '9px 20px', borderRadius: 8, border: 'none',
-                    background: '#8b5cf6', color: '#fff', fontSize: 13, fontWeight: 600,
-                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6
+                    background: '#0284c7', color: '#fff', fontSize: 13, fontWeight: 600,
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
+                    boxShadow: '0 2px 8px rgba(2, 132, 199, 0.3)'
                   }}
                 >
                   {actionLoading ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Calendar size={15} />}
@@ -1377,8 +1385,9 @@ export default function JobScheduling() {
                   disabled={actionLoading}
                   style={{
                     padding: '8px 18px', borderRadius: 8, border: 'none',
-                    background: '#8b5cf6', color: '#fff', fontSize: 13, fontWeight: 600,
-                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6
+                    background: '#0284c7', color: '#fff', fontSize: 13, fontWeight: 600,
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
+                    boxShadow: '0 2px 8px rgba(2, 132, 199, 0.3)'
                   }}
                 >
                   {actionLoading ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={14} />}

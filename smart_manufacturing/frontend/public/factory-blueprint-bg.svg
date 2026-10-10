@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b1329" stop-opacity="0.95"/>
+      <stop offset="50%" stop-color="#0f172a" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#020617" stop-opacity="0.95"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#334155" stroke-width="0.5" stroke-opacity="0.3"/>
+    </pattern>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#bgGrad)"/>
+  <rect width="1600" height="900" fill="url(#grid)"/>
+
+  <!-- Factory silhouette / industrial structural outline -->
+  <g fill="none" stroke="#1e293b" stroke-width="1.5" opacity="0.6">
+    <!-- Plant building line -->
+    <path d="M 100 800 L 100 550 L 220 620 L 220 500 L 360 590 L 360 480 L 520 600 L 520 800 Z" />
+    <path d="M 600 800 L 600 450 L 720 520 L 720 420 L 880 540 L 880 800 Z" />
+    <path d="M 980 800 L 980 500 L 1120 500 L 1120 400 L 1260 490 L 1260 800 Z" />
+    <path d="M 1320 800 L 1320 460 L 1500 560 L 1500 800 Z" />
+    <!-- Smokestacks / vents -->
+    <line x1="280" y1="450" x2="280" y2="380" stroke="#0284c7" stroke-width="2" opacity="0.4"/>
+    <line x1="780" y1="400" x2="780" y2="320" stroke="#0284c7" stroke-width="2" opacity="0.4"/>
+    <line x1="1200" y1="380" x2="1200" y2="300" stroke="#0284c7" stroke-width="2" opacity="0.4"/>
+    <!-- Structural girders -->
+    <line x1="0" y1="750" x2="1600" y2="750" stroke="#334155" stroke-width="1"/>
+  </g>
+
+  <!-- High-tech circuit / automated production conveyer traces -->
+  <g fill="none" stroke="#0ea5e9" stroke-width="1.2" opacity="0.25">
+    <path d="M 0 300 H 300 L 400 400 H 750 L 850 300 H 1300 L 1400 400 H 1600"/>
+    <circle cx="300" cy="300" r="4" fill="#0ea5e9"/>
+    <circle cx="750" cy="400" r="4" fill="#0284c7"/>
+    <circle cx="1300" cy="300" r="4" fill="#0ea5e9"/>
+    <path d="M 100 200 H 450 L 550 300 H 950 L 1050 200 H 1500"/>
+  </g>
+</svg>
