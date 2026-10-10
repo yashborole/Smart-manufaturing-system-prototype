@@ -6,8 +6,9 @@ import {
   Clock, Plus, X, Zap, Activity,
   Package, List, RefreshCw, Loader2, Moon, Sun, Gauge
 } from 'lucide-react';
+import { API_BASE_URL } from '../api/config';
 
-const API = 'http://localhost:8000';
+const API = API_BASE_URL;
 
 const STATUS_CONFIG = {
   Running:  { color: '#22c55e', bg: 'rgba(34,197,94,0.12)',  border: 'rgba(34,197,94,0.4)',  label: 'RUNNING',  dot: '#22c55e' },

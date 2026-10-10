@@ -15,7 +15,7 @@ from typing import Any
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from app.database import SessionLocal
-from app.models import Plant, Machine, Production, ActivityLog, Alert, User
+from app.models import Plant, Machine, Production, ActivityLog, Alert, User, Job, MachineLog
 
 
 def seed():
@@ -24,6 +24,12 @@ def seed():
     try:
         # ---- Clean up old data to ensure fresh seed ----
         print("Cleaning up old database records (alerts, logs, productions, machines, plant assignments)...")
+        # Clear foreign key references on machines first
+        db.query(Machine).update({"current_job_id": None})
+        db.commit()
+
+        db.query(MachineLog).delete()
+        db.query(Job).delete()
         db.query(Alert).delete()
         db.query(ActivityLog).delete()
         db.query(Production).delete()

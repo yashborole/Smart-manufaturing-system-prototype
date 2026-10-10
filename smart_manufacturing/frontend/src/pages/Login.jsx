@@ -2,6 +2,7 @@ import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { Shield, Lock, User, AlertCircle } from 'lucide-react';
+import { API_BASE_URL } from '../api/config';
 
 const Login = () => {
     const [username, setUsername] = useState('');
@@ -19,7 +20,7 @@ const Login = () => {
         setIsLoading(true);
 
         try {
-            const response = await fetch(`http://localhost:8000/users/login?user_name=${username}&password=${password}`, {
+            const response = await fetch(`${API_BASE_URL}/users/login?user_name=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`, {
                 method: 'POST',
             });
 

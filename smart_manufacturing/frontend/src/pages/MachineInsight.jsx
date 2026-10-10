@@ -5,6 +5,7 @@ import {
     ArrowLeft, Activity, Settings, AlertTriangle, Factory, 
     Layers, Sliders, User, LogOut, Menu, X, CheckCircle2, Clock 
 } from 'lucide-react';
+import { API_BASE_URL } from '../api/config';
 
 const MachineInsight = () => {
     const { machineId } = useParams();
@@ -35,7 +36,7 @@ const MachineInsight = () => {
             setLoading(true);
             setError('');
             try {
-                const res = await fetch(`http://localhost:8000/plants/machines/${machineId}`);
+                const res = await fetch(`${API_BASE_URL}/plants/machines/${machineId}`);
                 if (!res.ok) {
                     if (res.status === 404) {
                         throw new Error('Machine not found');

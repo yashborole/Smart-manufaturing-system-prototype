@@ -5,6 +5,7 @@ import {
     LogOut, Factory, Activity, AlertTriangle, Settings, Bell, 
     CheckCircle2, Clock, AlertCircle, Sliders, Layers, User, Menu, X, Zap
 } from 'lucide-react';
+import { API_BASE_URL } from '../api/config';
 
 const Dashboard = () => {
     const { user, selectedPlant, logout, selectPlant } = useContext(AuthContext);
@@ -39,9 +40,9 @@ const Dashboard = () => {
             setError('');
             try {
                 const [kpiRes, activityRes, alertsRes] = await Promise.all([
-                    fetch(`http://localhost:8000/dashboard/kpis/${selectedPlant.id}`),
-                    fetch(`http://localhost:8000/dashboard/activity/${selectedPlant.id}`),
-                    fetch(`http://localhost:8000/dashboard/alerts/${selectedPlant.id}`)
+                    fetch(`${API_BASE_URL}/dashboard/kpis/${selectedPlant.id}`),
+                    fetch(`${API_BASE_URL}/dashboard/activity/${selectedPlant.id}`),
+                    fetch(`${API_BASE_URL}/dashboard/alerts/${selectedPlant.id}`)
                 ]);
 
                 if (!kpiRes.ok || !activityRes.ok || !alertsRes.ok) {
@@ -75,7 +76,7 @@ const Dashboard = () => {
             setMachinesLoading(true);
             setError('');
             try {
-                const res = await fetch(`http://localhost:8000/plants/${selectedPlant.id}/machines`);
+                const res = await fetch(`${API_BASE_URL}/plants/${selectedPlant.id}/machines`);
                 if (!res.ok) throw new Error('Failed to fetch machine insights');
                 const data = await res.json();
                 setMachines(data);

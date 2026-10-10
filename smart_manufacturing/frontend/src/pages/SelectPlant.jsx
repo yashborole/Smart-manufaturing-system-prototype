@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { Factory, MapPin, LogOut, ArrowRight, Shield } from 'lucide-react';
+import { API_BASE_URL } from '../api/config';
 
 const SelectPlant = () => {
     const [plants, setPlants] = useState([]);
@@ -14,14 +15,14 @@ const SelectPlant = () => {
     useEffect(() => {
         const fetchPlants = async () => {
             try {
-                const response = await fetch(`http://localhost:8000/plants/user/${user.user_id}`);
+                const response = await fetch(`${API_BASE_URL}/plants/user/${user.user_id}`);
                 if (!response.ok) {
                     throw new Error('Failed to fetch plants');
                 }
                 const data = await response.json();
                 
                 if (data.length === 0) {
-                    const allPlantsRes = await fetch('http://localhost:8000/plants/');
+                    const allPlantsRes = await fetch(`${API_BASE_URL}/plants/`);
                     if (allPlantsRes.ok) {
                         const allPlantsData = await allPlantsRes.json();
                         setPlants(allPlantsData);
