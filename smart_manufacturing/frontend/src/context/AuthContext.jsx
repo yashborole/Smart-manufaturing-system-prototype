@@ -7,9 +7,15 @@ export const AuthProvider = ({ children }) => {
         const savedUser = localStorage.getItem('user');
         return savedUser ? JSON.parse(savedUser) : null;
     });
+    
     const [selectedPlant, setSelectedPlant] = useState(() => {
         const savedPlant = localStorage.getItem('selectedPlant');
         return savedPlant ? JSON.parse(savedPlant) : null;
+    });
+
+    // Global theme: 'light' or 'dark', default to 'light' (clean factory floor standard)
+    const [theme, setTheme] = useState(() => {
+        return localStorage.getItem('factory_theme') || 'light';
     });
 
     useEffect(() => {
@@ -30,6 +36,15 @@ export const AuthProvider = ({ children }) => {
         }
     }, [selectedPlant]);
 
+    useEffect(() => {
+        localStorage.setItem('factory_theme', theme);
+        document.documentElement.setAttribute('data-theme', theme);
+    }, [theme]);
+
+    const toggleTheme = () => {
+        setTheme(prev => prev === 'light' ? 'dark' : 'light');
+    };
+
     const login = (userData) => {
         setUser(userData);
     };
@@ -43,7 +58,15 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, selectedPlant, login, logout, selectPlant }}>
+        <AuthContext.Provider value={{ 
+            user, 
+            selectedPlant, 
+            login, 
+            logout, 
+            selectPlant,
+            theme,
+            toggleTheme
+        }}>
             {children}
         </AuthContext.Provider>
     );

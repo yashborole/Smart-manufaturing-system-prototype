@@ -119,18 +119,12 @@ function useTimer(running) {
 }
 
 export default function MachineKiosk() {
-  const { selectedPlant } = useContext(AuthContext);
+  const { selectedPlant, theme, toggleTheme } = useContext(AuthContext);
   const navigate = useNavigate();
 
   // ── Theme ────────────────────────────────────────────────────────────────────
-  const savedTheme = localStorage.getItem('kiosk-theme') || 'dark';
-  const [isDark, setIsDark] = useState(savedTheme === 'dark');
+  const isDark = theme === 'dark';
   const T = isDark ? THEMES.dark : THEMES.light;
-  const toggleTheme = () => {
-    const next = !isDark;
-    setIsDark(next);
-    localStorage.setItem('kiosk-theme', next ? 'dark' : 'light');
-  };
 
   const [machines, setMachines] = useState([]);
   const [selectedMachine, setSelectedMachine] = useState(null);

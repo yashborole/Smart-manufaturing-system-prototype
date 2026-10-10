@@ -66,11 +66,10 @@ const THEMES = {
 };
 
 export default function JobScheduling() {
-  const { selectedPlant } = useContext(AuthContext);
+  const { selectedPlant, theme, toggleTheme } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  const savedTheme = localStorage.getItem('kiosk-theme') || 'dark';
-  const [isDark, setIsDark] = useState(savedTheme === 'dark');
+  const isDark = theme === 'dark';
   const T = isDark ? THEMES.dark : THEMES.light;
 
   const [machines, setMachines] = useState([]);

@@ -4,14 +4,14 @@ import { AuthContext } from '../context/AuthContext';
 import { 
     ArrowLeft, Activity, Settings, AlertTriangle, Factory, 
     Layers, Sliders, User, LogOut, Menu, X, CheckCircle2, Clock,
-    Cpu, Gauge, BarChart3, Radio, RefreshCw, Zap, Calendar
+    Sun, Moon, RefreshCw, Zap, Calendar
 } from 'lucide-react';
 import { API_BASE_URL } from '../api/config';
 
 const MachineInsight = () => {
     const { machineId } = useParams();
     const navigate = useNavigate();
-    const { user, selectedPlant, logout, selectPlant } = useContext(AuthContext);
+    const { user, selectedPlant, logout, selectPlant, theme, toggleTheme } = useContext(AuthContext);
 
     const [machine, setMachine] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -39,15 +39,15 @@ const MachineInsight = () => {
             const res = await fetch(`${API_BASE_URL}/plants/machines/${machineId}`);
             if (!res.ok) {
                 if (res.status === 404) {
-                    throw new Error('Machine node not found in registry');
+                    throw new Error('Machine not found');
                 }
-                throw new Error('Telemetry request failed');
+                throw new Error('Failed to load machine data');
             }
             const data = await res.json();
             setMachine(data);
         } catch (err) {
             console.error(err);
-            setError(err.message || 'Error occurred while querying machinery diagnostics');
+            setError(err.message || 'Error occurred while loading machine details');
         } finally {
             setLoading(false);
         }
@@ -59,38 +59,6 @@ const MachineInsight = () => {
         }
     }, [machineId]);
 
-    const formatTime = (isoString) => {
-        try {
-            const date = new Date(isoString);
-            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        } catch {
-            return '';
-        }
-    };
-
-    const getStatusStyle = (status) => {
-        switch (status?.toLowerCase()) {
-            case 'completed':
-            case 'running':
-                return { bg: 'rgba(16, 185, 129, 0.1)', color: '#34d399', border: 'rgba(16, 185, 129, 0.3)' };
-            case 'maintenance':
-                return { bg: 'rgba(245, 158, 11, 0.1)', color: '#fbbf24', border: 'rgba(245, 158, 11, 0.3)' };
-            default:
-                return { bg: 'rgba(239, 68, 68, 0.1)', color: '#f87171', border: 'rgba(239, 68, 68, 0.3)' };
-        }
-    };
-
-    const getSeverityStyle = (severity) => {
-        switch (severity?.toLowerCase()) {
-            case 'critical':
-                return { border: '1px solid rgba(239, 68, 68, 0.4)', bg: 'rgba(239, 68, 68, 0.12)', color: '#fca5a5', iconColor: '#ef4444' };
-            case 'warning':
-                return { border: '1px solid rgba(245, 158, 11, 0.4)', bg: 'rgba(245, 158, 11, 0.12)', color: '#fde68a', iconColor: '#f59e0b' };
-            default:
-                return { border: '1px solid rgba(56, 189, 248, 0.4)', bg: 'rgba(56, 189, 248, 0.12)', color: '#bae6fd', iconColor: '#38bdf8' };
-        }
-    };
-
     if (!selectedPlant) {
         return null;
     }
@@ -101,394 +69,256 @@ const MachineInsight = () => {
             <div 
                 className={`sidebar-overlay ${sidebarOpen ? 'open' : ''}`} 
                 onClick={() => setSidebarOpen(false)} 
+                style={{
+                    display: sidebarOpen ? 'block' : 'none',
+                    position: 'fixed',
+                    inset: 0,
+                    background: 'rgba(0,0,0,0.5)',
+                    zIndex: 95
+                }}
             />
 
-            {/* SCADA Left Sidebar */}
+            {/* Left Sidebar */}
             <aside className={`app-sidebar ${sidebarOpen ? 'open' : ''}`}>
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    
-                    {/* Brand Identifier */}
+                <div>
                     <div className="sidebar-brand">
-                        <div className="sidebar-brand-icon">
-                            <Cpu size={18} />
-                        </div>
                         <div>
-                            <div style={{ fontSize: '13px', fontWeight: '800', color: '#f3f4f6', letterSpacing: '0.04em' }}>
-                                FACTORY OS
-                            </div>
-                            <div style={{ fontSize: '9px', color: '#6b7280', fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.08em' }}>
-                                SCADA CONTROL ROOM
-                            </div>
+                            <div className="sidebar-brand-title">Factory MES</div>
+                            <div className="sidebar-brand-sub">Manufacturing System</div>
                         </div>
-                        <button 
-                            className="mobile-menu-toggle" 
-                            style={{ marginLeft: 'auto', color: '#9ca3af' }}
-                            onClick={() => setSidebarOpen(false)}
-                        >
-                            <X size={16} />
-                        </button>
                     </div>
 
-                    {/* Plant Workspace Details */}
                     <div className="sidebar-node-card">
-                        <div>
-                            <div className="sidebar-node-title">ACTIVE PRODUCTION NODE</div>
-                            <div className="sidebar-node-name">{selectedPlant.name}</div>
-                            <div style={{ fontSize: '10px', color: '#6b7280', fontFamily: 'JetBrains Mono, monospace', marginTop: '2px' }}>
-                                ID: #{selectedPlant.id} • {selectedPlant.location || 'SITE-A'}
-                            </div>
-                        </div>
+                        <div className="sidebar-node-label">Current Factory</div>
+                        <div className="sidebar-node-name">{selectedPlant.name}</div>
                         <button onClick={handleChangePlant} className="sidebar-node-btn">
-                            <Layers size={12} />
-                            Switch Facility
+                            <Layers size={13} />
+                            Change Factory
                         </button>
                     </div>
 
-                    {/* Navigation Options */}
                     <nav className="sidebar-nav">
                         <button
                             onClick={() => navigate('/dashboard')}
                             className="sidebar-nav-item"
                         >
-                            <Activity size={15} />
-                            Plant Telemetry
+                            <Activity size={16} />
+                            Plant Overview
                         </button>
+
                         <button
                             onClick={() => navigate('/dashboard', { state: { activeTab: 'insights' } })}
                             className="sidebar-nav-item active"
                         >
-                            <Sliders size={15} />
-                            Equipment Diagnostics
+                            <Sliders size={16} />
+                            Machine Status
                         </button>
+
                         <button
                             onClick={() => navigate('/scheduling')}
                             className="sidebar-nav-item"
-                            style={{ borderTop: '1px solid #1f2937', marginTop: '6px', paddingTop: '10px' }}
+                            style={{ borderTop: '1px solid rgba(255,255,255,0.1)', marginTop: '8px', paddingTop: '12px' }}
                         >
-                            <Calendar size={15} color="#818cf8" />
-                            Job Scheduling & Dispatch
+                            <Calendar size={16} color="#c4b5fd" />
+                            Job Scheduling
                         </button>
+
                         <button
                             onClick={() => navigate('/kiosk')}
                             className="sidebar-nav-item"
                         >
-                            <Zap size={15} color="#38bdf8" />
-                            Floor Operator Kiosk
+                            <Zap size={16} color="#38bdf8" />
+                            Machine Kiosk
                         </button>
                     </nav>
                 </div>
 
-                {/* Operator Session */}
                 <div className="sidebar-profile">
-                    <div className="sidebar-profile-details">
-                        <div className="sidebar-profile-avatar">
-                            <User size={15} />
+                    <div className="sidebar-profile-info">
+                        <div style={{
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '50%',
+                            background: 'rgba(255,255,255,0.15)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: '#ffffff'
+                        }}>
+                            <User size={16} />
                         </div>
                         <div>
                             <div className="sidebar-profile-name">{user?.name}</div>
-                            <div className="sidebar-profile-role">CERTIFIED OPERATOR</div>
+                            <div className="sidebar-profile-role">Operator</div>
                         </div>
                     </div>
                     <button onClick={handleLogout} className="sidebar-logout-btn">
-                        <LogOut size={12} />
-                        Sign Out
+                        <LogOut size={13} />
+                        Log Out
                     </button>
                 </div>
             </aside>
 
-            {/* Right Workspace Area */}
+            {/* Right Workspace */}
             <div className="workspace-wrapper">
                 
-                {/* Header */}
                 <header className="workspace-header">
                     <div className="workspace-header-left">
-                        <button className="mobile-menu-toggle" onClick={() => setSidebarOpen(true)}>
-                            <Menu size={18} />
+                        <button 
+                            onClick={handleBack}
+                            className="btn btn-secondary"
+                            style={{ padding: '6px 12px' }}
+                        >
+                            <ArrowLeft size={14} />
+                            Back to Machines
                         </button>
-                        <div className="workspace-breadcrumbs">
-                            <span>ROOT</span>
-                            <span>/</span>
-                            <span>{selectedPlant.name?.toUpperCase()}</span>
-                            <span>/</span>
-                            <span>DIAGNOSTICS</span>
-                            <span>/</span>
-                            <span className="active">{machine ? machine.name?.toUpperCase() : `NODE-${machineId}`}</span>
+                        <div className="workspace-header-title">
+                            {machine ? `${machine.name} Details` : 'Machine Diagnostics'}
                         </div>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                        <div className="workspace-status-badge">
-                            <span className="workspace-status-dot" />
-                            <span className="workspace-status-text">NODE TELEMETRY LINKED</span>
-                        </div>
+                    <div className="workspace-header-right">
+                        <button 
+                            onClick={toggleTheme}
+                            className="theme-toggle-btn"
+                        >
+                            {theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
+                            <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+                        </button>
                     </div>
                 </header>
 
-                {/* Workspace Main */}
                 <main className="workspace-content">
-                    
-                    {/* Header bar with Back button */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                            <button 
-                                onClick={handleBack}
-                                className="btn-secondary"
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '6px',
-                                }}
-                            >
-                                <ArrowLeft size={14} />
-                                Back to Fleet
-                            </button>
-                            {machine && (
-                                <div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <h2 style={{ fontSize: '20px', fontWeight: '800', color: '#f9fafb', margin: 0 }}>
-                                            {machine.name} Diagnostics
-                                        </h2>
-                                        <span className={`status-pill ${machine.status.toLowerCase()}`}>
-                                            {machine.status}
-                                        </span>
-                                    </div>
-                                    <p style={{ color: '#9ca3af', fontSize: '12px', margin: '2px 0 0 0', fontFamily: 'JetBrains Mono, monospace' }}>
-                                        TYPE: {machine.machine_type || 'GENERAL'} • NODE: #{machine.id} • FACILITY: {machine.plant_name}
-                                    </p>
-                                </div>
-                            )}
-                        </div>
-
-                        <button 
-                            onClick={fetchMachineDetails}
-                            className="btn-secondary"
-                            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-                        >
-                            <RefreshCw size={12} />
-                            Refresh Node
-                        </button>
-                    </div>
-
                     {error && (
                         <div style={{ 
-                            background: 'rgba(239, 68, 68, 0.1)', 
-                            border: '1px solid rgba(239, 68, 68, 0.3)',
-                            color: '#f87171', 
+                            background: 'var(--status-stopped-bg)', 
+                            border: '1px solid var(--status-stopped-border)',
+                            color: 'var(--status-stopped)', 
                             padding: '10px 14px', 
                             borderRadius: '6px', 
-                            marginBottom: '20px', 
-                            display: 'flex', 
-                            gap: '8px', 
-                            alignItems: 'center',
-                            fontSize: '12px',
-                            fontWeight: '500'
+                            marginBottom: '16px', 
+                            fontSize: '13px'
                         }}>
-                            <AlertCircle size={15} style={{ color: '#ef4444' }} />
-                            <span>{error}</span>
+                            {error}
                         </div>
                     )}
 
                     {loading ? (
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '300px', gap: '14px' }}>
-                            <div className="spinner" />
-                            <p style={{ color: '#9ca3af', fontSize: '12px', fontFamily: 'JetBrains Mono, monospace' }}>
-                                QUERYING DEVICE SENSORS...
-                            </p>
+                        <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>
+                            Loading machine details...
                         </div>
                     ) : machine ? (
                         <>
-                            {/* KPIs grid */}
-                            <div className="kpis-grid">
-                                
-                                {/* Status card */}
-                                <div className="panel-card accent-blue" style={{ padding: '18px' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                                        <span style={{ color: '#9ca3af', fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace' }}>
-                                            OPERATIONAL STATUS
-                                        </span>
-                                        <div style={{ color: '#06b6d4', background: 'rgba(255,255,255,0.04)', padding: '5px', borderRadius: '5px', border: '1px solid rgba(255,255,255,0.08)' }}>
-                                            <Settings size={15} />
-                                        </div>
-                                    </div>
-                                    <div style={{ fontSize: '22px', fontWeight: '800', color: '#f3f4f6', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '8px', fontFamily: 'JetBrains Mono, monospace' }}>
-                                        {machine.status}
-                                    </div>
-                                    <div style={{ fontSize: '9.5px', color: '#6b7280', fontWeight: '700', textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace' }}>
-                                        PLC LINK: ACTIVE • ID #{machine.id}
+                            {/* Top Info Banner */}
+                            <div className="card" style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div>
+                                    <h1 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--text-main)', margin: 0 }}>
+                                        {machine.name}
+                                    </h1>
+                                    <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                                        Machine Type: <strong>{machine.machine_type || 'General Equipment'}</strong> • Plant: <strong>{machine.plant_name}</strong>
                                     </div>
                                 </div>
-
-                                {/* Efficiency 7d */}
-                                <div className="panel-card accent-green" style={{ padding: '18px' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                                        <span style={{ color: '#9ca3af', fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace' }}>
-                                            EFFICIENCY (7D ROLLING)
-                                        </span>
-                                        <div style={{ color: '#10b981', background: 'rgba(16, 185, 129, 0.1)', padding: '5px', borderRadius: '5px', border: '1px solid rgba(16, 185, 129, 0.25)' }}>
-                                            <Activity size={15} />
-                                        </div>
-                                    </div>
-                                    <div style={{ fontSize: '26px', fontWeight: '800', color: '#f3f4f6', marginBottom: '4px', fontFamily: 'JetBrains Mono, monospace' }}>
-                                        {machine.avg_efficiency_7d}%
-                                    </div>
-                                    <div style={{ fontSize: '9.5px', color: machine.avg_efficiency_7d >= 85 ? '#34d399' : '#fbbf24', fontWeight: '700', textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace' }}>
-                                        {machine.avg_efficiency_7d >= 85 ? 'OEE IN SPECIFICATION' : 'CALIBRATION RECOMMENDED'}
-                                    </div>
+                                <div>
+                                    <span className={`badge ${machine.status?.toLowerCase() === 'running' ? 'badge-running' : machine.status?.toLowerCase() === 'maintenance' ? 'badge-maintenance' : 'badge-stopped'}`} style={{ fontSize: '13px', padding: '6px 12px' }}>
+                                        Status: {machine.status}
+                                    </span>
                                 </div>
-
-                                {/* Current Output vs Target */}
-                                <div className="panel-card accent-blue" style={{ padding: '18px' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                                        <span style={{ color: '#9ca3af', fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace' }}>
-                                            CURRENT SHIFT THROUGHPUT
-                                        </span>
-                                        <div style={{ color: '#818cf8', background: 'rgba(129, 140, 248, 0.1)', padding: '5px', borderRadius: '5px', border: '1px solid rgba(129, 140, 248, 0.25)' }}>
-                                            <CheckCircle2 size={15} />
-                                        </div>
-                                    </div>
-                                    <div style={{ fontSize: '24px', fontWeight: '800', color: '#f3f4f6', marginBottom: '4px', fontFamily: 'JetBrains Mono, monospace' }}>
-                                        {machine.latest_production.produced} / {machine.latest_production.target}
-                                    </div>
-                                    <div style={{ fontSize: '9.5px', color: '#9ca3af', fontWeight: '700', textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace' }}>
-                                        PARTS LOGGED ({machine.latest_production.efficiency}% EFF)
-                                    </div>
-                                </div>
-
-                                {/* Total 7d Output */}
-                                <div className="panel-card accent-blue" style={{ padding: '18px' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                                        <span style={{ color: '#9ca3af', fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace' }}>
-                                            TOTAL 7D PRODUCTION
-                                        </span>
-                                        <div style={{ color: '#06b6d4', background: 'rgba(6, 182, 212, 0.1)', padding: '5px', borderRadius: '5px', border: '1px solid rgba(6, 182, 212, 0.25)' }}>
-                                            <Factory size={15} />
-                                        </div>
-                                    </div>
-                                    <div style={{ fontSize: '26px', fontWeight: '800', color: '#f3f4f6', marginBottom: '4px', fontFamily: 'JetBrains Mono, monospace' }}>
-                                        {machine.total_produced_7d.toLocaleString()}
-                                    </div>
-                                    <div style={{ fontSize: '9.5px', color: '#9ca3af', fontWeight: '700', textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace' }}>
-                                        VERIFIED CYCLES COMPLETED
-                                    </div>
-                                </div>
-
                             </div>
 
-                            {/* Chart & History */}
-                            <div className="details-grid" style={{ marginBottom: '24px' }}>
-                                
-                                {/* Production Performance Chart */}
-                                <div className="panel-card" style={{ padding: '20px' }}>
-                                    <h3 style={{ fontSize: '14px', fontWeight: '700', color: '#f3f4f6', marginBottom: '4px' }}>
-                                        7-Day Production Histogram
-                                    </h3>
-                                    <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 16px 0' }}>
-                                        Actual units produced vs planned cycle target per 24h interval.
-                                    </p>
+                            {/* 4 Cards */}
+                            <div className="kpi-grid">
+                                <div className="kpi-card">
+                                    <div className="kpi-title">7-Day Average Efficiency</div>
+                                    <div className="kpi-value" style={{ color: machine.avg_efficiency_7d >= 85 ? 'var(--status-running)' : 'var(--status-idle)' }}>
+                                        {machine.avg_efficiency_7d}%
+                                    </div>
+                                    <div className="kpi-status" style={{ color: machine.avg_efficiency_7d >= 85 ? 'var(--status-running)' : 'var(--status-idle)' }}>
+                                        {machine.avg_efficiency_7d >= 85 ? 'Normal Operation' : 'Check Tooling / Speed'}
+                                    </div>
+                                </div>
 
-                                    {machine.history.length === 0 ? (
-                                        <div style={{ textAlign: 'center', padding: '60px 0', color: '#6b7280', fontSize: '12px' }}>
-                                            No cycle production telemetry recorded yet.
-                                        </div>
-                                    ) : (
-                                        <div className="chart-container">
-                                            <div className="chart-bars-wrapper">
+                                <div className="kpi-card">
+                                    <div className="kpi-title">Today's Produced Parts</div>
+                                    <div className="kpi-value" style={{ color: 'var(--primary)' }}>
+                                        {machine.latest_production.produced} / {machine.latest_production.target}
+                                    </div>
+                                    <div className="kpi-status" style={{ color: 'var(--text-muted)' }}>
+                                        {machine.latest_production.efficiency}% of today's target
+                                    </div>
+                                </div>
+
+                                <div className="kpi-card">
+                                    <div className="kpi-title">7-Day Total Parts</div>
+                                    <div className="kpi-value" style={{ color: 'var(--text-main)' }}>
+                                        {machine.total_produced_7d.toLocaleString()}
+                                    </div>
+                                    <div className="kpi-status" style={{ color: 'var(--text-muted)' }}>
+                                        Finished parts completed
+                                    </div>
+                                </div>
+
+                                <div className="kpi-card">
+                                    <div className="kpi-title">Machine ID</div>
+                                    <div className="kpi-value" style={{ color: 'var(--text-main)' }}>
+                                        #{machine.id}
+                                    </div>
+                                    <div className="kpi-status" style={{ color: 'var(--status-running)' }}>
+                                        Registered in System
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Daily Production Table (Simple and very clear for operators) */}
+                            <div className="card">
+                                <h2 className="card-title">Daily Production History (Last 7 Days)</h2>
+                                <p className="card-subtitle">List of daily parts produced and target numbers</p>
+
+                                {machine.history.length === 0 ? (
+                                    <div style={{ textAlign: 'center', padding: '30px', color: 'var(--text-muted)' }}>
+                                        No production records found for the past 7 days.
+                                    </div>
+                                ) : (
+                                    <div style={{ overflowX: 'auto' }}>
+                                        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+                                            <thead>
+                                                <tr style={{ borderBottom: '2px solid var(--border-color)', color: 'var(--text-muted)' }}>
+                                                    <th style={{ padding: '10px 12px' }}>Day & Date</th>
+                                                    <th style={{ padding: '10px 12px' }}>Parts Produced</th>
+                                                    <th style={{ padding: '10px 12px' }}>Target Goal</th>
+                                                    <th style={{ padding: '10px 12px' }}>Efficiency</th>
+                                                    <th style={{ padding: '10px 12px' }}>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
                                                 {machine.history.map((day, idx) => {
-                                                    const maxVal = Math.max(...machine.history.map(d => Math.max(d.produced, d.target)));
-                                                    const producedHeight = maxVal > 0 ? (day.produced / maxVal) * 100 : 0;
-                                                    const targetMarkerHeight = maxVal > 0 ? (day.target / maxVal) * 100 : 0;
-
+                                                    const metTarget = day.produced >= day.target;
                                                     return (
-                                                        <div key={idx} className="chart-bar-group">
-                                                            <div className="chart-bar-value">{day.produced}</div>
-                                                            <div className="chart-bar-capsule">
-                                                                <div 
-                                                                    className="chart-bar-fill" 
-                                                                    style={{ 
-                                                                        height: `${producedHeight}%`,
-                                                                        background: day.produced >= day.target ? '#10b981' : '#0284c7'
-                                                                    }} 
-                                                                />
-                                                                <div 
-                                                                    className="chart-bar-target-marker" 
-                                                                    style={{ bottom: `${targetMarkerHeight}%` }}
-                                                                    title={`Target: ${day.target}`}
-                                                                />
-                                                            </div>
-                                                            <div className="chart-bar-label">{day.day_name}</div>
-                                                        </div>
+                                                        <tr key={idx} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                                                            <td style={{ padding: '12px', fontWeight: '600', color: 'var(--text-main)' }}>
+                                                                {day.day_name}, {day.date}
+                                                            </td>
+                                                            <td style={{ padding: '12px', fontWeight: '700', color: 'var(--text-main)' }}>
+                                                                {day.produced.toLocaleString()} parts
+                                                            </td>
+                                                            <td style={{ padding: '12px', color: 'var(--text-muted)' }}>
+                                                                {day.target.toLocaleString()} parts
+                                                            </td>
+                                                            <td style={{ padding: '12px', fontWeight: '700', color: day.efficiency >= 85 ? 'var(--status-running)' : 'var(--status-idle)' }}>
+                                                                {day.efficiency}%
+                                                            </td>
+                                                            <td style={{ padding: '12px' }}>
+                                                                <span className={`badge ${metTarget ? 'badge-running' : 'badge-idle'}`}>
+                                                                    {metTarget ? 'Target Achieved' : 'Below Target'}
+                                                                </span>
+                                                            </td>
+                                                        </tr>
                                                     );
                                                 })}
-                                            </div>
-                                        </div>
-                                    )}
-                                    <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginTop: '14px', fontSize: '10px', fontFamily: 'JetBrains Mono, monospace' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                            <span style={{ width: '8px', height: '8px', background: '#0284c7', borderRadius: '2px' }} />
-                                            <span style={{ color: '#9ca3af' }}>PRODUCED</span>
-                                        </div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                            <span style={{ width: '8px', height: '8px', background: '#10b981', borderRadius: '2px' }} />
-                                            <span style={{ color: '#9ca3af' }}>TARGET MET</span>
-                                        </div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                            <span style={{ width: '10px', height: '2px', background: '#f87171' }} />
-                                            <span style={{ color: '#9ca3af' }}>TARGET LIMIT</span>
-                                        </div>
+                                            </tbody>
+                                        </table>
                                     </div>
-                                </div>
-
-                                {/* Output Audit Log */}
-                                <div className="panel-card" style={{ padding: '20px' }}>
-                                    <h3 style={{ fontSize: '14px', fontWeight: '700', color: '#f3f4f6', marginBottom: '4px' }}>
-                                        Daily Telemetry Log
-                                    </h3>
-                                    <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 16px 0' }}>
-                                        Detailed breakdown of hourly batch completions.
-                                    </p>
-
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                        {machine.history.map((day, idx) => (
-                                            <div key={idx} style={{
-                                                display: 'flex',
-                                                justifyContent: 'space-between',
-                                                alignItems: 'center',
-                                                padding: '8px 12px',
-                                                background: '#0d121c',
-                                                borderRadius: '6px',
-                                                border: '1px solid var(--border-subtle)',
-                                                fontFamily: 'JetBrains Mono, monospace',
-                                                fontSize: '11px'
-                                            }}>
-                                                <div>
-                                                    <span style={{ color: '#f3f4f6', fontWeight: '700' }}>{day.date}</span>
-                                                    <span style={{ color: '#6b7280', marginLeft: '8px' }}>({day.day_name})</span>
-                                                </div>
-                                                <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
-                                                    <div>
-                                                        <span style={{ color: '#6b7280', fontSize: '9px' }}>ACTUAL: </span>
-                                                        <strong style={{ color: day.produced >= day.target ? '#34d399' : '#f3f4f6' }}>{day.produced}</strong>
-                                                    </div>
-                                                    <div>
-                                                        <span style={{ color: '#6b7280', fontSize: '9px' }}>TARGET: </span>
-                                                        <span style={{ color: '#9ca3af' }}>{day.target}</span>
-                                                    </div>
-                                                    <span style={{
-                                                        padding: '2px 6px',
-                                                        borderRadius: '3px',
-                                                        fontSize: '9px',
-                                                        fontWeight: '700',
-                                                        background: day.efficiency >= 85 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)',
-                                                        color: day.efficiency >= 85 ? '#34d399' : '#fbbf24',
-                                                        border: `1px solid ${day.efficiency >= 85 ? 'rgba(16, 185, 129, 0.3)' : 'rgba(245, 158, 11, 0.3)'}`
-                                                    }}>
-                                                        {day.efficiency}%
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
+                                )}
                             </div>
                         </>
                     ) : null}
