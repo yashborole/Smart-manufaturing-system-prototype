@@ -125,3 +125,60 @@ def get_machine_logs(machine_id: int, limit: int = 30):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/jobs/{job_id}/schedule")
+def schedule_job(job_id: int, body: schemas.JobScheduleRequest):
+    try:
+        result = kiosk.schedule_job(
+            job_id=job_id,
+            scheduled_start_at=body.scheduled_start_at,
+            estimated_duration_min=body.estimated_duration_min or 60
+        )
+        if isinstance(result, dict) and "error" in result:
+            raise HTTPException(status_code=400, detail=result["error"])
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/jobs/{job_id}/unschedule")
+def unschedule_job(job_id: int):
+    try:
+        result = kiosk.unschedule_job(job_id=job_id)
+        if isinstance(result, dict) and "error" in result:
+            raise HTTPException(status_code=400, detail=result["error"])
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/schedule/{plant_id}")
+def get_plant_schedule(plant_id: int):
+    try:
+        result = kiosk.get_plant_schedule(plant_id=plant_id)
+        if isinstance(result, dict) and "error" in result:
+            raise HTTPException(status_code=400, detail=result["error"])
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/schedule/dispatch")
+def auto_dispatch_due_jobs(plant_id: int = None):
+    try:
+        result = kiosk.dispatch_due_scheduled_jobs(plant_id=plant_id)
+        if isinstance(result, dict) and "error" in result:
+            raise HTTPException(status_code=400, detail=result["error"])
+        return {"dispatched": result}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+

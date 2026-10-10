@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from app.database import SessionLocal
 from sqlalchemy import text
 from typing import Optional
@@ -6,9 +7,31 @@ from typing import Optional
 def create_job(job_data: dict):
     db = SessionLocal()
     try:
+        scheduled_start = job_data.get("scheduled_start_at")
+        estimated_duration = job_data.get("estimated_duration_min")
+        scheduled_end = None
+
+        if scheduled_start:
+            if isinstance(scheduled_start, str):
+                try:
+                    scheduled_start = datetime.fromisoformat(scheduled_start.replace("Z", "+00:00"))
+                except Exception:
+                    pass
+            initial_status = "Scheduled"
+            if estimated_duration and isinstance(scheduled_start, datetime):
+                scheduled_end = scheduled_start + timedelta(minutes=int(estimated_duration))
+        else:
+            initial_status = "Pending"
+
         query = text("""
-            INSERT INTO jobs (title, part_name, target_qty, priority, status, units_produced, machine_id, plant_id, created_at)
-            VALUES (:title, :part_name, :target_qty, :priority, 'Pending', 0, :machine_id, :plant_id, NOW())
+            INSERT INTO jobs (
+                title, part_name, target_qty, priority, status, units_produced,
+                machine_id, plant_id, scheduled_start_at, scheduled_end_at, estimated_duration_min, created_at
+            )
+            VALUES (
+                :title, :part_name, :target_qty, :priority, :status, 0,
+                :machine_id, :plant_id, :scheduled_start, :scheduled_end, :estimated_duration, NOW()
+            )
             RETURNING *
         """)
         result = db.execute(query, {
@@ -16,8 +39,12 @@ def create_job(job_data: dict):
             "part_name": job_data["part_name"],
             "target_qty": job_data["target_qty"],
             "priority": job_data.get("priority", "Normal"),
+            "status": initial_status,
             "machine_id": job_data["machine_id"],
             "plant_id": job_data["plant_id"],
+            "scheduled_start": scheduled_start,
+            "scheduled_end": scheduled_end,
+            "estimated_duration": estimated_duration,
         })
         db.commit()
         row = result.mappings().first()
@@ -38,6 +65,13 @@ def get_jobs_for_machine(machine_id: int):
             JOIN machines m ON j.machine_id = m.id
             WHERE j.machine_id = :machine_id
             ORDER BY 
+                CASE j.status
+                    WHEN 'Running' THEN 1
+                    WHEN 'Scheduled' THEN 2
+                    WHEN 'Pending' THEN 3
+                    ELSE 4
+                END,
+                j.scheduled_start_at ASC NULLS LAST,
                 CASE j.priority 
                     WHEN 'Urgent' THEN 1
                     WHEN 'High' THEN 2
@@ -62,7 +96,7 @@ def run_job(job_id: int):
         if not job:
             return {"error": "Job not found"}
 
-        if job["status"] != "Pending":
+        if job["status"] not in ("Pending", "Scheduled"):
             return {"error": f"Cannot run job with status '{job['status']}'"}
 
         machine_id = job["machine_id"]
@@ -352,7 +386,8 @@ def get_kiosk_machines(plant_id: int):
                 j.part_name as current_job_part,
                 j.target_qty as current_job_target,
                 j.units_produced as current_job_produced,
-                (SELECT COUNT(*) FROM jobs jj WHERE jj.machine_id = m.id AND jj.status = 'Pending') as pending_jobs
+                (SELECT COUNT(*) FROM jobs jj WHERE jj.machine_id = m.id AND jj.status = 'Pending') as pending_jobs,
+                (SELECT COUNT(*) FROM jobs jj WHERE jj.machine_id = m.id AND jj.status = 'Scheduled') as scheduled_jobs
             FROM machines m
             LEFT JOIN jobs j ON m.current_job_id = j.id
             WHERE m.plant_id = :plant_id
@@ -364,3 +399,181 @@ def get_kiosk_machines(plant_id: int):
         return {"error": str(e)}
     finally:
         db.close()
+
+
+def schedule_job(job_id: int, scheduled_start_at, estimated_duration_min: int = 60):
+    db = SessionLocal()
+    try:
+        job = db.execute(text("""
+            SELECT j.*, m.name as machine_name 
+            FROM jobs j 
+            JOIN machines m ON j.machine_id = m.id 
+            WHERE j.id = :job_id
+        """), {"job_id": job_id}).mappings().first()
+        if not job:
+            return {"error": "Job not found"}
+        if job["status"] in ("Running", "Completed", "Cancelled"):
+            return {"error": f"Cannot schedule job with status '{job['status']}'"}
+
+        if isinstance(scheduled_start_at, str):
+            try:
+                scheduled_start_at = datetime.fromisoformat(scheduled_start_at.replace("Z", "+00:00"))
+            except Exception:
+                pass
+
+        scheduled_end = None
+        if scheduled_start_at and estimated_duration_min and isinstance(scheduled_start_at, datetime):
+            scheduled_end = scheduled_start_at + timedelta(minutes=int(estimated_duration_min))
+
+        db.execute(text("""
+            UPDATE jobs
+            SET status = 'Scheduled',
+                scheduled_start_at = :start,
+                scheduled_end_at = :end,
+                estimated_duration_min = :dur
+            WHERE id = :job_id
+        """), {
+            "start": scheduled_start_at,
+            "end": scheduled_end,
+            "dur": estimated_duration_min,
+            "job_id": job_id,
+        })
+
+        db.execute(text("""
+            INSERT INTO activity_logs (event, status, plant_id, timestamp)
+            VALUES (:event, 'Running', :plant_id, NOW())
+        """), {
+            "event": f"Job '{job['title']}' scheduled on {job['machine_name']} for {scheduled_start_at}",
+            "plant_id": job["plant_id"]
+        })
+
+        db.commit()
+        updated_job = db.execute(text("SELECT * FROM jobs WHERE id = :job_id"), {"job_id": job_id}).mappings().first()
+        return dict(updated_job) if updated_job else {"success": True}
+    except Exception as e:
+        db.rollback()
+        return {"error": str(e)}
+    finally:
+        db.close()
+
+
+def unschedule_job(job_id: int):
+    db = SessionLocal()
+    try:
+        job = db.execute(text("""
+            SELECT j.*, m.name as machine_name 
+            FROM jobs j 
+            JOIN machines m ON j.machine_id = m.id 
+            WHERE j.id = :job_id
+        """), {"job_id": job_id}).mappings().first()
+        if not job:
+            return {"error": "Job not found"}
+        if job["status"] != "Scheduled":
+            return {"error": f"Job is not currently scheduled (current status: '{job['status']}')"}
+
+        db.execute(text("""
+            UPDATE jobs
+            SET status = 'Pending',
+                scheduled_start_at = NULL,
+                scheduled_end_at = NULL
+            WHERE id = :job_id
+        """), {"job_id": job_id})
+
+        db.execute(text("""
+            INSERT INTO activity_logs (event, status, plant_id, timestamp)
+            VALUES (:event, 'Running', :plant_id, NOW())
+        """), {
+            "event": f"Job '{job['title']}' unscheduled on {job['machine_name']} and returned to Pending queue",
+            "plant_id": job["plant_id"]
+        })
+
+        db.commit()
+        updated_job = db.execute(text("SELECT * FROM jobs WHERE id = :job_id"), {"job_id": job_id}).mappings().first()
+        return dict(updated_job) if updated_job else {"success": True}
+    except Exception as e:
+        db.rollback()
+        return {"error": str(e)}
+    finally:
+        db.close()
+
+
+def get_plant_schedule(plant_id: int):
+    db = SessionLocal()
+    try:
+        query = text("""
+            SELECT 
+                j.*, 
+                m.name as machine_name,
+                m.status as machine_status,
+                m.machine_type
+            FROM jobs j
+            JOIN machines m ON j.machine_id = m.id
+            WHERE j.plant_id = :plant_id
+              AND j.status IN ('Running', 'Scheduled', 'Pending')
+            ORDER BY 
+                CASE j.status
+                    WHEN 'Running' THEN 1
+                    WHEN 'Scheduled' THEN 2
+                    WHEN 'Pending' THEN 3
+                    ELSE 4
+                END,
+                j.scheduled_start_at ASC NULLS LAST,
+                j.created_at ASC
+        """)
+        result = db.execute(query, {"plant_id": plant_id})
+        return [dict(row) for row in result.mappings().all()]
+    except Exception as e:
+        return {"error": str(e)}
+    finally:
+        db.close()
+
+
+def dispatch_due_scheduled_jobs(plant_id: Optional[int] = None):
+    db = SessionLocal()
+    dispatched = []
+    try:
+        sql = """
+            SELECT j.id, j.title, j.part_name, j.scheduled_start_at, j.machine_id, j.plant_id,
+                   m.name as machine_name, m.status as machine_status
+            FROM jobs j
+            JOIN machines m ON j.machine_id = m.id
+            WHERE j.status = 'Scheduled'
+              AND j.scheduled_start_at <= NOW()
+        """
+        params = {}
+        if plant_id:
+            sql += " AND j.plant_id = :plant_id"
+            params["plant_id"] = plant_id
+
+        sql += " ORDER BY j.scheduled_start_at ASC"
+
+        due_jobs = db.execute(text(sql), params).mappings().all()
+
+        for j in due_jobs:
+            m_status = j["machine_status"]
+            if m_status in ("Idle", "Stopped"):
+                db.close()
+                res = run_job(j["id"])
+                if isinstance(res, dict) and res.get("success"):
+                    dispatched.append({
+                        "job_id": j["id"],
+                        "title": j["title"],
+                        "machine_name": j["machine_name"],
+                        "status": "Dispatched"
+                    })
+                    print(f"[SCHEDULER] Auto-dispatched scheduled job '{j['title']}' on machine '{j['machine_name']}'")
+                db = SessionLocal()
+            elif m_status == "Running":
+                print(f"[SCHEDULER] Due job '{j['title']}' on hold — machine '{j['machine_name']}' is currently busy")
+            elif m_status == "Maintenance":
+                print(f"[SCHEDULER] Due job '{j['title']}' on hold — machine '{j['machine_name']}' in maintenance")
+
+        return dispatched
+    except Exception as e:
+        print(f"[SCHEDULER] Error during job dispatch check: {e}")
+        return {"error": str(e)}
+    finally:
+        try:
+            db.close()
+        except Exception:
+            pass

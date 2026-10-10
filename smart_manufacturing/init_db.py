@@ -21,9 +21,20 @@ def init_db():
     print("  Smart Manufacturing MES — Database Initializer")
     print("=" * 60)
 
-    # 1. Create tables
+    # 1. Create tables & migrate new columns
     print("Creating database schema if not present...")
     Base.metadata.create_all(bind=engine)
+
+    from sqlalchemy import text
+    with engine.connect() as conn:
+        try:
+            conn.execute(text("ALTER TABLE jobs ADD COLUMN IF NOT EXISTS scheduled_start_at TIMESTAMP WITH TIME ZONE;"))
+            conn.execute(text("ALTER TABLE jobs ADD COLUMN IF NOT EXISTS scheduled_end_at TIMESTAMP WITH TIME ZONE;"))
+            conn.execute(text("ALTER TABLE jobs ADD COLUMN IF NOT EXISTS estimated_duration_min INTEGER;"))
+            conn.commit()
+        except Exception as err:
+            print(f"Column migration notice: {err}")
+
     print("Database tables verified.")
 
     db = SessionLocal()

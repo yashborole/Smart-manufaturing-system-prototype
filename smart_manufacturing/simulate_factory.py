@@ -157,6 +157,13 @@ def clear_machine_alerts(db, machine: Machine):
 
 
 def simulate_tick():
+    # ── Job Scheduler: Auto-dispatch due scheduled jobs ──────────────
+    try:
+        from app.db_ops.kiosk import dispatch_due_scheduled_jobs
+        dispatch_due_scheduled_jobs()
+    except Exception as se:
+        print(f"  [SCHEDULER] Dispatch check notice: {se}")
+
     db = SessionLocal()
     try:
         machines = db.query(Machine).all()

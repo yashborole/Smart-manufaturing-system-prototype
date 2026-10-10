@@ -106,10 +106,13 @@ class Job(Base):
     part_name = Column(String(150), nullable=False)
     target_qty = Column(Integer, default=0)
     priority = Column(String(20), default="Normal")  # Low, Normal, High, Urgent
-    status = Column(String(30), default="Pending")   # Pending, Running, Completed, Cancelled
+    status = Column(String(30), default="Pending")   # Pending, Scheduled, Running, Completed, Cancelled
     units_produced = Column(Integer, default=0)
     machine_id = Column(Integer, ForeignKey("machines.id"), nullable=False)
     plant_id = Column(Integer, ForeignKey("plants.id"), nullable=False)
+    scheduled_start_at = Column(DateTime(timezone=True), nullable=True)
+    scheduled_end_at = Column(DateTime(timezone=True), nullable=True)
+    estimated_duration_min = Column(Integer, nullable=True)
     started_at = Column(DateTime(timezone=True), nullable=True)
     completed_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

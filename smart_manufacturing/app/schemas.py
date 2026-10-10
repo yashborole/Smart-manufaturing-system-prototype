@@ -91,6 +91,12 @@ class JobCreate(BaseModel):
     priority: Optional[str] = "Normal"
     machine_id: int
     plant_id: int
+    scheduled_start_at: Optional[datetime] = None
+    estimated_duration_min: Optional[int] = None
+
+class JobScheduleRequest(BaseModel):
+    scheduled_start_at: datetime
+    estimated_duration_min: Optional[int] = 60
 
 class JobResponse(BaseModel):
     id: int
@@ -102,6 +108,9 @@ class JobResponse(BaseModel):
     units_produced: int
     machine_id: int
     plant_id: int
+    scheduled_start_at: Optional[datetime] = None
+    scheduled_end_at: Optional[datetime] = None
+    estimated_duration_min: Optional[int] = None
     started_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
     created_at: datetime
@@ -146,5 +155,6 @@ class KioskMachineResponse(BaseModel):
     current_job_target: Optional[int] = None
     current_job_produced: Optional[int] = None
     pending_jobs: int
+    scheduled_jobs: Optional[int] = 0
 
     model_config = {"from_attributes": True}

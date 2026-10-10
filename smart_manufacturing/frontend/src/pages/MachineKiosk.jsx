@@ -4,7 +4,8 @@ import { AuthContext } from '../context/AuthContext';
 import {
   ArrowLeft, Play, Pause, Square, AlertTriangle, CheckCircle2,
   Clock, Plus, X, Zap, Activity,
-  Package, List, RefreshCw, Loader2, Moon, Sun, Gauge
+  Package, List, RefreshCw, Loader2, Moon, Sun, Gauge,
+  Calendar, CalendarClock, RotateCcw, Timer
 } from 'lucide-react';
 import { API_BASE_URL } from '../api/config';
 
@@ -27,6 +28,7 @@ const PRIORITY_CONFIG = {
 
 const JOB_STATUS_COLOR = {
   Pending:   '#f59e0b',
+  Scheduled: '#8b5cf6',
   Running:   '#22c55e',
   Completed: '#3b82f6',
   Cancelled: '#6b7280',
@@ -143,8 +145,14 @@ export default function MachineKiosk() {
   const [unitsInput, setUnitsInput] = useState('');
   const [activeJobId, setActiveJobId] = useState(null);
 
+  // ── Scheduling State ─────────────────────────────────────────────────────────
+  const [scheduleModalJob, setScheduleModalJob] = useState(null);
+  const [scheduleTime, setScheduleTime] = useState('');
+  const [scheduleDuration, setScheduleDuration] = useState('60');
+
   const [newJob, setNewJob] = useState({
-    title: '', part_name: '', target_qty: '', priority: 'Normal'
+    title: '', part_name: '', target_qty: '', priority: 'Normal',
+    is_scheduled: false, scheduled_start_at: '', estimated_duration_min: '60'
   });
 
   // ── Cycle Production Simulation State ──────────────────────────────────────
@@ -318,20 +326,32 @@ export default function MachineKiosk() {
     }
     setActionLoading(true);
     try {
+      const payload = {
+        title: newJob.title,
+        part_name: newJob.part_name,
+        target_qty: parseInt(newJob.target_qty),
+        priority: newJob.priority,
+        machine_id: selectedMachine.id,
+        plant_id: selectedPlant.id,
+      };
+
+      if (newJob.is_scheduled && newJob.scheduled_start_at) {
+        payload.scheduled_start_at = new Date(newJob.scheduled_start_at).toISOString();
+        payload.estimated_duration_min = parseInt(newJob.estimated_duration_min) || 60;
+      }
+
       const res = await fetch(`${API}/kiosk/jobs`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...newJob,
-          target_qty: parseInt(newJob.target_qty),
-          machine_id: selectedMachine.id,
-          plant_id: selectedPlant.id,
-        }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || 'Failed');
-      showToast('Job added to queue!', 'success');
-      setNewJob({ title: '', part_name: '', target_qty: '', priority: 'Normal' });
+      showToast(newJob.is_scheduled ? 'Job scheduled successfully!' : 'Job added to queue!', 'success');
+      setNewJob({
+        title: '', part_name: '', target_qty: '', priority: 'Normal',
+        is_scheduled: false, scheduled_start_at: '', estimated_duration_min: '60'
+      });
       setShowAddJob(false);
       await fetchJobs(selectedMachine.id);
       await fetchMachines();
@@ -342,7 +362,56 @@ export default function MachineKiosk() {
     }
   };
 
+  const handleScheduleJob = async (e) => {
+    e.preventDefault();
+    if (!scheduleModalJob || !scheduleTime) {
+      showToast('Please select a schedule date & time', 'error');
+      return;
+    }
+    setActionLoading(true);
+    try {
+      const res = await fetch(`${API}/kiosk/jobs/${scheduleModalJob.id}/schedule`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          scheduled_start_at: new Date(scheduleTime).toISOString(),
+          estimated_duration_min: parseInt(scheduleDuration) || 60,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Failed to schedule job');
+      showToast(`Job '${scheduleModalJob.title}' scheduled!`, 'success');
+      setScheduleModalJob(null);
+      setScheduleTime('');
+      await fetchJobs(selectedMachine.id);
+      await fetchMachines();
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleUnscheduleJob = async (jobId) => {
+    setActionLoading(true);
+    try {
+      const res = await fetch(`${API}/kiosk/jobs/${jobId}/unschedule`, {
+        method: 'POST',
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Failed to unschedule job');
+      showToast('Job returned to Pending queue', 'info');
+      await fetchJobs(selectedMachine.id);
+      await fetchMachines();
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const runningJob = jobs.find(j => j.status === 'Running');
+  const scheduledJobs = jobs.filter(j => j.status === 'Scheduled');
   const pendingJobs = jobs.filter(j => j.status === 'Pending');
   const historyJobs = jobs.filter(j => ['Completed', 'Cancelled'].includes(j.status));
   const progress = runningJob
@@ -480,6 +549,12 @@ export default function MachineKiosk() {
                       <div style={st.currentJobTag}>
                         <Play size={10} />
                         {m.current_job_title}
+                      </div>
+                    )}
+                    {m.scheduled_jobs > 0 && (
+                      <div style={{ ...st.pendingTag, background: 'rgba(139,92,246,0.12)', color: '#a78bfa', borderColor: 'rgba(139,92,246,0.3)', display: 'inline-flex', alignItems: 'center' }}>
+                        <CalendarClock size={10} style={{ marginRight: 3 }} />
+                        {m.scheduled_jobs} scheduled
                       </div>
                     )}
                     {m.pending_jobs > 0 && (
@@ -752,6 +827,103 @@ export default function MachineKiosk() {
                 </div>
               )}
 
+              {/* Schedule Job Modal */}
+              {scheduleModalJob && (
+                <div style={st.modal}>
+                  <div style={st.modalBox}>
+                    <div style={st.modalTitle}>
+                      <CalendarClock size={18} color="#8b5cf6" /> Schedule Job
+                    </div>
+                    <p style={st.modalSub}>
+                      Schedule <strong>{scheduleModalJob.title}</strong> for <strong>{selectedMachine.name}</strong>
+                    </p>
+                    <form onSubmit={handleScheduleJob}>
+                      <div style={{ marginBottom: 12 }}>
+                        <label style={{ fontSize: 11, color: T.textMuted, display: 'block', marginBottom: 4, textAlign: 'left' }}>
+                          Scheduled Start Time
+                        </label>
+                        <input
+                          type="datetime-local"
+                          value={scheduleTime}
+                          onChange={e => setScheduleTime(e.target.value)}
+                          style={{ ...st.modalInput, width: '100%', boxSizing: 'border-box' }}
+                          required
+                        />
+                      </div>
+                      <div style={{ marginBottom: 16 }}>
+                        <label style={{ fontSize: 11, color: T.textMuted, display: 'block', marginBottom: 4, textAlign: 'left' }}>
+                          Estimated Duration (Minutes)
+                        </label>
+                        <input
+                          type="number"
+                          value={scheduleDuration}
+                          onChange={e => setScheduleDuration(e.target.value)}
+                          placeholder="e.g. 60"
+                          style={{ ...st.modalInput, width: '100%', boxSizing: 'border-box' }}
+                          min="5"
+                        />
+                      </div>
+                      <div style={st.modalActions}>
+                        <button type="button" onClick={() => setScheduleModalJob(null)} style={st.cancelBtn}>
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={actionLoading}
+                          style={{ ...st.confirmBtn, background: '#8b5cf6', display: 'flex', alignItems: 'center', gap: 6 }}
+                        >
+                          {actionLoading ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Calendar size={14} />}
+                          Confirm Schedule
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              )}
+
+              {/* Planned Machine Schedule Timeline */}
+              {scheduledJobs.length > 0 && (
+                <div style={{ ...st.logPanel, marginBottom: 16 }}>
+                  <div style={{ ...st.panelHeader, borderBottom: `1px solid ${T.panelBorder}` }}>
+                    <CalendarClock size={15} color="#8b5cf6" />
+                    <span style={{ color: '#a78bfa', fontWeight: 600 }}>Planned Machine Schedule</span>
+                    <span style={{ ...st.countBadge, background: 'rgba(139,92,246,0.15)', color: '#a78bfa' }}>{scheduledJobs.length}</span>
+                  </div>
+                  <div style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {scheduledJobs.map((sj, idx) => (
+                      <div key={sj.id} style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        padding: '8px 12px', borderRadius: 8,
+                        background: 'rgba(139,92,246,0.06)', border: '1px solid rgba(139,92,246,0.18)'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <span style={{
+                            width: 22, height: 22, borderRadius: '50%', background: '#8b5cf6',
+                            color: '#fff', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center'
+                          }}>
+                            {idx + 1}
+                          </span>
+                          <div>
+                            <div style={{ fontSize: 13, fontWeight: 600, color: T.textPanel }}>{sj.title}</div>
+                            <div style={{ fontSize: 11, color: T.textMuted }}>{sj.part_name} · Target: {sj.target_qty} units</div>
+                          </div>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <div style={{ fontSize: 12, fontWeight: 600, color: '#a78bfa' }}>
+                            {new Date(sj.scheduled_start_at).toLocaleString('en-IN', {
+                              month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                            })}
+                          </div>
+                          <div style={{ fontSize: 10, color: T.textFaint }}>
+                            {sj.estimated_duration_min ? `Est. ${sj.estimated_duration_min} mins` : 'Pending dispatch'}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Status Log Timeline */}
               <div style={st.logPanel}>
                 <div style={st.panelHeader}>
@@ -845,9 +1017,56 @@ export default function MachineKiosk() {
                       <option>Low</option>
                     </select>
                   </div>
-                  <button type="submit" disabled={actionLoading} style={st.submitBtn}>
-                    {actionLoading ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Plus size={14} />}
-                    Add to Queue
+
+                  {/* Schedule for later toggle */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '8px 0 4px 0' }}>
+                    <input
+                      type="checkbox"
+                      id="schedule-toggle"
+                      checked={newJob.is_scheduled}
+                      onChange={e => {
+                        const checked = e.target.checked;
+                        const defaultTime = new Date(Date.now() + 30 * 60 * 1000).toISOString().slice(0, 16);
+                        setNewJob(p => ({
+                          ...p,
+                          is_scheduled: checked,
+                          scheduled_start_at: checked ? (p.scheduled_start_at || defaultTime) : '',
+                        }));
+                      }}
+                      style={{ accentColor: '#8b5cf6', cursor: 'pointer' }}
+                    />
+                    <label htmlFor="schedule-toggle" style={{ fontSize: 12, color: T.text, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <CalendarClock size={14} color="#8b5cf6" /> Schedule for Later
+                    </label>
+                  </div>
+
+                  {newJob.is_scheduled && (
+                    <div style={{ background: 'rgba(139,92,246,0.06)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: 8, padding: 8, marginBottom: 8 }}>
+                      <div style={{ fontSize: 11, color: '#a78bfa', fontWeight: 600, marginBottom: 4 }}>Scheduled Start Time</div>
+                      <input
+                        type="datetime-local"
+                        value={newJob.scheduled_start_at}
+                        onChange={e => setNewJob(p => ({ ...p, scheduled_start_at: e.target.value }))}
+                        style={{ ...st.formInput, marginBottom: 6 }}
+                        required={newJob.is_scheduled}
+                      />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ fontSize: 11, color: T.textMuted }}>Est. Mins:</span>
+                        <input
+                          type="number"
+                          value={newJob.estimated_duration_min}
+                          onChange={e => setNewJob(p => ({ ...p, estimated_duration_min: e.target.value }))}
+                          placeholder="60"
+                          style={{ ...st.formInput, width: 80, padding: '4px 8px', fontSize: 11 }}
+                          min="5"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <button type="submit" disabled={actionLoading} style={{ ...st.submitBtn, background: newJob.is_scheduled ? '#8b5cf6' : st.submitBtn.background }}>
+                    {actionLoading ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : (newJob.is_scheduled ? <Calendar size={14} /> : <Plus size={14} />)}
+                    {newJob.is_scheduled ? 'Schedule Job' : 'Add to Queue'}
                   </button>
                 </form>
               )}
@@ -862,13 +1081,38 @@ export default function MachineKiosk() {
                       <JobCard job={runningJob} onRun={null} onCancel={handleCancelJob} isRunning disabled={actionLoading} T={T} />
                     </div>
                   )}
+                  {scheduledJobs.length > 0 && (
+                    <div style={st.jobSection}>
+                      <div style={{ ...st.sectionLabel, color: '#a78bfa' }}>
+                        SCHEDULED ({scheduledJobs.length})
+                      </div>
+                      {scheduledJobs.map(job => (
+                        <JobCard
+                          key={job.id}
+                          job={job}
+                          onRun={isRunning ? null : handleRunJob}
+                          onUnschedule={handleUnscheduleJob}
+                          onCancel={handleCancelJob}
+                          disabled={actionLoading || isRunning}
+                          machineRunning={isRunning}
+                          T={T}
+                        />
+                      ))}
+                    </div>
+                  )}
                   {pendingJobs.length > 0 && (
                     <div style={st.jobSection}>
                       <div style={st.sectionLabel}>PENDING ({pendingJobs.length})</div>
                       {pendingJobs.map(job => (
                         <JobCard
-                          key={job.id} job={job}
+                          key={job.id}
+                          job={job}
                           onRun={isRunning ? null : handleRunJob}
+                          onSchedule={j => {
+                            setScheduleModalJob(j);
+                            setScheduleTime(new Date(Date.now() + 30 * 60 * 1000).toISOString().slice(0, 16));
+                            setScheduleDuration('60');
+                          }}
                           onCancel={handleCancelJob}
                           disabled={actionLoading || isRunning}
                           machineRunning={isRunning}
@@ -914,7 +1158,7 @@ export default function MachineKiosk() {
   );
 }
 
-function JobCard({ job, onRun, onCancel, isRunning, disabled, machineRunning, T }) {
+function JobCard({ job, onRun, onSchedule, onUnschedule, onCancel, isRunning, disabled, machineRunning, T }) {
   const pc = PRIORITY_CONFIG[job.priority] || PRIORITY_CONFIG.Normal;
 
   return (
@@ -935,14 +1179,67 @@ function JobCard({ job, onRun, onCancel, isRunning, disabled, machineRunning, T 
       <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: T.textMuted, marginBottom: 5 }}>
         <Package size={11} color={T.textMuted} /> {job.part_name}
       </div>
-      <div style={{ display: 'flex', gap: 12, fontSize: 11, color: T.textMuted }}>
+      <div style={{ display: 'flex', gap: 12, fontSize: 11, color: T.textMuted, flexWrap: 'wrap' }}>
         <span>Target: <strong style={{ color: T.text }}>{job.target_qty}</strong></span>
         {job.units_produced > 0 && <span>Made: <strong style={{ color: '#22c55e' }}>{job.units_produced}</strong></span>}
         <span style={{ color: JOB_STATUS_COLOR[job.status], fontWeight: 600 }}>{job.status}</span>
       </div>
 
+      {/* Scheduled Time Banner */}
+      {job.status === 'Scheduled' && job.scheduled_start_at && (
+        <div style={{
+          marginTop: 6, padding: '4px 8px', borderRadius: 6,
+          background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.25)',
+          display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#a78bfa'
+        }}>
+          <CalendarClock size={12} />
+          <span>
+            {new Date(job.scheduled_start_at).toLocaleString('en-IN', {
+              month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+            })}
+            {job.estimated_duration_min ? ` (~${job.estimated_duration_min}m)` : ''}
+          </span>
+        </div>
+      )}
+
+      {/* Scheduled Actions */}
+      {job.status === 'Scheduled' && (
+        <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
+          {onRun && (
+            <button
+              onClick={() => onRun(job.id)}
+              disabled={disabled}
+              title={machineRunning ? 'Complete current job first' : 'Run this job now (early)'}
+              style={{ display:'flex', alignItems:'center', gap:4, padding:'5px 10px', borderRadius:6, border:'none', fontSize:11, fontWeight:600, cursor:'pointer', background:'#8b5cf6', color:'#fff', opacity: disabled ? 0.5 : 1 }}
+            >
+              <Play size={12} /> Start Now
+            </button>
+          )}
+          {onUnschedule && (
+            <button
+              onClick={() => onUnschedule(job.id)}
+              disabled={disabled}
+              title="Move back to Pending queue"
+              style={{ display:'flex', alignItems:'center', gap:4, padding:'5px 10px', borderRadius:6, border:'none', fontSize:11, fontWeight:600, cursor:'pointer', background:'rgba(255,255,255,0.06)', color: T.textMuted }}
+            >
+              <RotateCcw size={12} /> Unschedule
+            </button>
+          )}
+          {onCancel && (
+            <button
+              onClick={() => onCancel(job.id)}
+              disabled={disabled}
+              style={{ display:'flex', alignItems:'center', gap:4, padding:'5px 10px', borderRadius:6, border:'none', fontSize:11, fontWeight:600, cursor:'pointer', background:'rgba(239,68,68,0.12)', color:'#ef4444' }}
+            >
+              <X size={12} /> Cancel
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Pending Actions */}
       {job.status === 'Pending' && (
-        <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+        <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
           {onRun && (
             <button
               onClick={() => onRun(job.id)}
@@ -951,6 +1248,16 @@ function JobCard({ job, onRun, onCancel, isRunning, disabled, machineRunning, T 
               style={{ display:'flex', alignItems:'center', gap:4, padding:'5px 10px', borderRadius:6, border:'none', fontSize:11, fontWeight:600, cursor:'pointer', background:'#6366f1', color:'#fff', opacity: disabled ? 0.5 : 1 }}
             >
               <Play size={12} /> Run
+            </button>
+          )}
+          {onSchedule && (
+            <button
+              onClick={() => onSchedule(job)}
+              disabled={disabled}
+              title="Schedule this job for a specific time"
+              style={{ display:'flex', alignItems:'center', gap:4, padding:'5px 10px', borderRadius:6, border:'none', fontSize:11, fontWeight:600, cursor:'pointer', background:'rgba(139,92,246,0.15)', color:'#a78bfa' }}
+            >
+              <CalendarClock size={12} /> Schedule
             </button>
           )}
           {machineRunning && (
