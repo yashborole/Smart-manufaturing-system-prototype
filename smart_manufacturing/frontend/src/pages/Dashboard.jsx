@@ -39,9 +39,9 @@ const Dashboard = () => {
         if (!selectedPlant) return;
         try {
             const [kpisRes, activitiesRes, alertsRes] = await Promise.all([
-                fetch(`${API_BASE_URL}/plants/${selectedPlant.id}/kpis`),
-                fetch(`${API_BASE_URL}/plants/${selectedPlant.id}/activity?limit=6`),
-                fetch(`${API_BASE_URL}/plants/${selectedPlant.id}/alerts`)
+                fetch(`${API_BASE_URL}/dashboard/kpis/${selectedPlant.id}`),
+                fetch(`${API_BASE_URL}/dashboard/activity/${selectedPlant.id}?limit=6`),
+                fetch(`${API_BASE_URL}/dashboard/alerts/${selectedPlant.id}`)
             ]);
 
             if (!kpisRes.ok || !activitiesRes.ok || !alertsRes.ok) {
@@ -301,45 +301,45 @@ const Dashboard = () => {
                                 </div>
                             ) : (
                                 <>
-                                    {/* 4 Clean Big Number Cards */}
+                                    {/* Clean Big Number Cards */}
                                     <div className="kpi-grid">
                                         <div className="kpi-card">
                                             <div className="kpi-title">Plant Efficiency</div>
                                             <div className="kpi-value" style={{ color: (kpis?.efficiency ?? 0) >= 85 ? 'var(--status-running)' : 'var(--status-idle)' }}>
-                                                {kpis?.efficiency ?? 0}%
+                                                {kpis ? `${kpis.efficiency}%` : '—'}
                                             </div>
                                             <div className="kpi-status" style={{ color: (kpis?.efficiency ?? 0) >= 85 ? 'var(--status-running)' : 'var(--status-idle)' }}>
-                                                {(kpis?.efficiency ?? 0) >= 85 ? 'Good Performance' : 'Needs Attention'}
+                                                {kpis ? ((kpis.efficiency >= 85) ? 'Normal' : 'Attention') : 'Loading'}
                                             </div>
                                         </div>
 
                                         <div className="kpi-card">
-                                            <div className="kpi-title">Machines Running</div>
+                                            <div className="kpi-title">Active Machines</div>
                                             <div className="kpi-value" style={{ color: 'var(--status-running)' }}>
-                                                {kpis?.active_machines ?? 0} / {kpis?.total_machines ?? 0}
+                                                {kpis ? `${kpis.active_machines} / ${kpis.total_machines}` : '—'}
                                             </div>
                                             <div className="kpi-status" style={{ color: 'var(--text-muted)' }}>
-                                                {kpis?.downtime_machines ?? 0} machines stopped
+                                                {kpis ? `${kpis.downtime_machines} in maintenance` : '—'}
                                             </div>
                                         </div>
 
                                         <div className="kpi-card">
-                                            <div className="kpi-title">Total Parts Produced (7 Days)</div>
+                                            <div className="kpi-title">Total Output Recorded</div>
                                             <div className="kpi-value" style={{ color: 'var(--primary)' }}>
-                                                {kpis?.total_production?.toLocaleString() ?? '0'}
+                                                {kpis ? Number(kpis.total_production || 0).toLocaleString() : '—'}
                                             </div>
                                             <div className="kpi-status" style={{ color: 'var(--text-muted)' }}>
-                                                Finished parts logged
+                                                Units produced
                                             </div>
                                         </div>
 
                                         <div className="kpi-card">
                                             <div className="kpi-title">Active Alerts</div>
                                             <div className="kpi-value" style={{ color: (kpis?.active_alerts ?? 0) > 0 ? 'var(--status-stopped)' : 'var(--status-running)' }}>
-                                                {kpis?.active_alerts ?? 0}
+                                                {kpis ? kpis.active_alerts : '—'}
                                             </div>
                                             <div className="kpi-status" style={{ color: (kpis?.active_alerts ?? 0) > 0 ? 'var(--status-stopped)' : 'var(--status-running)' }}>
-                                                {(kpis?.active_alerts ?? 0) > 0 ? 'Requires Check' : 'No Problems'}
+                                                {kpis ? (kpis.active_alerts > 0 ? 'Active Warnings' : 'None') : '—'}
                                             </div>
                                         </div>
                                     </div>

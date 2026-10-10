@@ -226,35 +226,37 @@ const MachineInsight = () => {
                                 </div>
                             </div>
 
-                            {/* 4 Cards */}
+                            {/* Clean KPI Cards */}
                             <div className="kpi-grid">
                                 <div className="kpi-card">
-                                    <div className="kpi-title">7-Day Average Efficiency</div>
-                                    <div className="kpi-value" style={{ color: machine.avg_efficiency_7d >= 85 ? 'var(--status-running)' : 'var(--status-idle)' }}>
-                                        {machine.avg_efficiency_7d}%
+                                    <div className="kpi-title">Average Efficiency (7 Days)</div>
+                                    <div className="kpi-value" style={{ color: (machine.avg_efficiency_7d || 0) >= 85 ? 'var(--status-running)' : 'var(--status-idle)' }}>
+                                        {machine.avg_efficiency_7d !== undefined ? `${machine.avg_efficiency_7d}%` : '—'}
                                     </div>
-                                    <div className="kpi-status" style={{ color: machine.avg_efficiency_7d >= 85 ? 'var(--status-running)' : 'var(--status-idle)' }}>
-                                        {machine.avg_efficiency_7d >= 85 ? 'Normal Operation' : 'Check Tooling / Speed'}
+                                    <div className="kpi-status" style={{ color: (machine.avg_efficiency_7d || 0) >= 85 ? 'var(--status-running)' : 'var(--status-idle)' }}>
+                                        {(machine.avg_efficiency_7d || 0) >= 85 ? 'Normal' : 'Attention'}
                                     </div>
                                 </div>
 
                                 <div className="kpi-card">
-                                    <div className="kpi-title">Today's Produced Parts</div>
+                                    <div className="kpi-title">Today's Production</div>
                                     <div className="kpi-value" style={{ color: 'var(--primary)' }}>
-                                        {machine.latest_production.produced} / {machine.latest_production.target}
+                                        {machine.latest_production 
+                                            ? `${machine.latest_production.produced || 0} / ${machine.latest_production.target || 0}` 
+                                            : '—'}
                                     </div>
                                     <div className="kpi-status" style={{ color: 'var(--text-muted)' }}>
-                                        {machine.latest_production.efficiency}% of today's target
+                                        {machine.latest_production ? `${machine.latest_production.efficiency || 0}% efficiency` : 'No production today'}
                                     </div>
                                 </div>
 
                                 <div className="kpi-card">
-                                    <div className="kpi-title">7-Day Total Parts</div>
+                                    <div className="kpi-title">Total 7-Day Output</div>
                                     <div className="kpi-value" style={{ color: 'var(--text-main)' }}>
-                                        {machine.total_produced_7d.toLocaleString()}
+                                        {machine.total_produced_7d !== undefined ? machine.total_produced_7d.toLocaleString() : '—'}
                                     </div>
                                     <div className="kpi-status" style={{ color: 'var(--text-muted)' }}>
-                                        Finished parts completed
+                                        Units logged in database
                                     </div>
                                 </div>
 
@@ -264,7 +266,7 @@ const MachineInsight = () => {
                                         #{machine.id}
                                     </div>
                                     <div className="kpi-status" style={{ color: 'var(--status-running)' }}>
-                                        Registered in System
+                                        Database Node #{machine.id}
                                     </div>
                                 </div>
                             </div>

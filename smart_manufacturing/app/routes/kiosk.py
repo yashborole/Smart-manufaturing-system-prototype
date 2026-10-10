@@ -171,7 +171,7 @@ def get_plant_schedule(plant_id: int):
 
 
 @router.post("/schedule/dispatch")
-def auto_dispatch_due_jobs(plant_id: int = None):
+def auto_dispatch_due_jobs(plant_id: int | None = None):
     try:
         result = kiosk.dispatch_due_scheduled_jobs(plant_id=plant_id)
         if isinstance(result, dict) and "error" in result:
