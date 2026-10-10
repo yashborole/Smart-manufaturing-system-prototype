@@ -1,287 +1,299 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-
 /* ==========================================================================
-   DESIGN SYSTEM VARIABLES (Premium Dual-Color Theme: Navy + Slate/Blue)
+   FACTORY OS — ENTERPRISE MES DESIGN SYSTEM
+   Authentic industrial SCADA/MES aesthetic inspired by Siemens MindSphere,
+   GE Predix, Rockwell FactoryTalk, and Honeywell Forge.
+   Crisp telemetry typography, high-contrast dark industrial chassis,
+   tactile panels, technical status grids, monospaced numeric readouts.
    ========================================================================== */
 
 :root {
-  /* Colors */
-  --bg-main: #f8fafc;
-  --bg-card: #ffffff;
-  --bg-sidebar: #0f172a;       /* Strong Dark Navy Sidebar */
-  --bg-sidebar-hover: #1e293b;
-  --bg-hover: #f1f5f9;
-  
-  --border-light: #e2e8f0;
-  --border-focus: #3b82f6;
+  /* Surface hierarchy */
+  --bg-app: #0b0f17;
+  --bg-sidebar: #070a0f;
+  --bg-card: #111827;
+  --bg-card-secondary: #0d121c;
+  --bg-input: #0b0f17;
+  --bg-hover: #1e293b;
+  --bg-active: #1e2a42;
 
-  --accent-primary: #3b82f6;   /* Royal Accent */
-  --accent-hover: #2563eb;
-  
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #94a3b8;
-  
-  /* Status Colors */
+  /* Borders & Dividers */
+  --border-subtle: #1f2937;
+  --border-medium: #374151;
+  --border-highlight: #475569;
+  --border-focus: #38bdf8;
+
+  /* Primary Industrial Accents */
+  --accent-cyan: #06b6d4;
+  --accent-cyan-glow: rgba(6, 182, 212, 0.15);
+  --accent-amber: #f59e0b;
+  --accent-blue: #3b82f6;
+
+  /* Machinery Status Colors (Industrial SCADA standard) */
   --status-running: #10b981;
-  --status-running-bg: #ecfdf5;
-  --status-maintenance: #f59e0b;
-  --status-maintenance-bg: #fffbeb;
-  --status-stopped: #ef4444;
-  --status-stopped-bg: #fef2f2;
-  --status-info: #3b82f6;
-  --status-info-bg: #eff6ff;
+  --status-running-bg: rgba(16, 185, 129, 0.12);
+  --status-running-border: rgba(16, 185, 129, 0.35);
 
-  /* Fonts */
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --status-maintenance: #f59e0b;
+  --status-maintenance-bg: rgba(245, 158, 11, 0.12);
+  --status-maintenance-border: rgba(245, 158, 11, 0.35);
+
+  --status-stopped: #ef4444;
+  --status-stopped-bg: rgba(239, 68, 68, 0.12);
+  --status-stopped-border: rgba(239, 68, 68, 0.35);
+
+  --status-scheduled: #8b5cf6;
+  --status-scheduled-bg: rgba(139, 92, 246, 0.12);
+  --status-scheduled-border: rgba(139, 92, 246, 0.35);
+
+  /* Typography */
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Text hierarchy */
+  --text-primary: #f3f4f6;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+  --text-faint: #4b5563;
 
   /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.05), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
-  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.05), 0 4px 6px -4px rgba(15, 23, 42, 0.05);
-  --shadow-card: 0 1px 3px 0 rgba(15, 23, 42, 0.06), 0 1px 2px -1px rgba(15, 23, 42, 0.06);
-  
-  /* Transitions */
-  --transition-fast: 0.15s ease;
-  --transition-normal: 0.25s ease;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.45), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+  --shadow-panel: 0 0 0 1px var(--border-subtle), 0 8px 24px -4px rgba(0, 0, 0, 0.5);
 }
 
-/* ==========================================================================
-   GLOBAL RESET & BASE STYLES
-   ========================================================================== */
-
+/* Base resets */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-body {
-  background-color: var(--bg-main);
+html, body {
+  background-color: var(--bg-app);
   color: var(--text-primary);
   font-family: var(--font-sans);
   min-height: 100vh;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom Scrollbar */
+/* Industrial Tech Scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--bg-main);
+  background: var(--bg-app);
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 99px;
+  background: #374151;
+  border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #4b5563;
 }
 
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-sans);
-  font-weight: 700;
-  color: var(--text-primary);
-  letter-spacing: -0.02em;
-}
-
-button {
-  font-family: var(--font-sans);
-  cursor: pointer;
-  border: none;
-  outline: none;
-  background: none;
-  transition: all var(--transition-fast);
-}
-
-input, select, textarea {
-  font-family: var(--font-sans);
-  outline: none;
+/* Monospace numeric readouts */
+.mono-num, .font-mono {
+  font-family: var(--font-mono) !important;
+  font-feature-settings: 'tnum' on, 'zero' on;
 }
 
 /* ==========================================================================
-   LAYOUT CLASSES (Fully Responsive & Structured)
+   APP SHELL LAYOUT
    ========================================================================== */
 
-/* Shell Layout */
 .app-layout {
   display: flex;
   min-height: 100vh;
-  background: var(--bg-main);
+  background: var(--bg-app);
   position: relative;
 }
 
-/* Sidebar Styling (Dark Dual Accent) */
+/* Modern Industrial Left Sidebar */
 .app-sidebar {
   width: 260px;
   background: var(--bg-sidebar);
-  border-right: 1px solid #1e293b;
+  border-right: 1px solid var(--border-subtle);
   display: flex;
   flex-direction: column;
   position: sticky;
   top: 0;
   height: 100vh;
   z-index: 100;
-  padding: 24px 20px;
+  padding: 20px 16px;
   justify-content: space-between;
-  transition: transform var(--transition-normal) px;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* Brand header */
 .sidebar-brand {
   display: flex;
   align-items: center;
-  gap: 12px;
-  color: #ffffff;
-  margin-bottom: 24px;
+  gap: 10px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 16px;
 }
 
 .sidebar-brand-icon {
-  background: rgba(59, 130, 246, 0.15);
-  color: var(--accent-primary);
-  padding: 8px;
-  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(59, 130, 246, 0.15));
+  color: var(--accent-cyan);
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  border: 1px solid rgba(6, 182, 212, 0.3);
 }
 
 .sidebar-node-card {
-  padding: 14px;
-  background: #1e293b;
-  border: 1px solid #334155;
-  border-radius: 8px;
+  padding: 12px 14px;
+  background: var(--bg-card-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-bottom: 24px;
+  gap: 10px;
+  margin-bottom: 18px;
 }
 
 .sidebar-node-title {
-  font-size: 10px;
-  color: #94a3b8;
+  font-size: 9px;
+  color: var(--text-muted);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
+  font-family: var(--font-mono);
 }
 
 .sidebar-node-name {
-  font-size: 14px;
-  font-weight: 600;
-  color: #f8fafc;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
 }
 
 .sidebar-node-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 8px 12px;
-  background: #0f172a;
-  color: #94a3b8;
-  border-radius: 6px;
-  border: 1px solid #334155;
-  font-size: 12px;
+  gap: 6px;
+  padding: 7px 10px;
+  background: var(--bg-app);
+  color: var(--text-secondary);
+  border-radius: 5px;
+  border: 1px solid var(--border-subtle);
+  font-size: 11px;
   font-weight: 600;
+  cursor: pointer;
   width: 100%;
+  transition: all 0.15s ease;
 }
 .sidebar-node-btn:hover {
-  background: #1e293b;
-  color: #ffffff;
-  border-color: #475569;
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  border-color: var(--border-medium);
 }
 
 /* Sidebar Nav */
 .sidebar-nav {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .sidebar-nav-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 14px;
+  gap: 10px;
+  padding: 9px 12px;
   border-radius: 6px;
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 600;
-  color: #94a3b8;
+  color: var(--text-secondary);
   background: transparent;
+  border: 1px solid transparent;
   text-align: left;
   width: 100%;
-  transition: all var(--transition-fast);
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
 .sidebar-nav-item:hover {
-  color: #ffffff;
-  background: var(--bg-sidebar-hover);
+  color: var(--text-primary);
+  background: var(--bg-hover);
 }
 .sidebar-nav-item.active {
   color: #ffffff;
-  background: var(--accent-primary);
+  background: linear-gradient(90deg, rgba(6, 182, 212, 0.15), rgba(59, 130, 246, 0.08));
+  border: 1px solid rgba(6, 182, 212, 0.35);
+  box-shadow: inset 2px 0 0 var(--accent-cyan);
 }
 
 /* Sidebar Profile */
 .sidebar-profile {
-  border-top: 1px solid #1e293b;
-  padding-top: 20px;
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 16px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 
 .sidebar-profile-details {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .sidebar-profile-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  background: #1e293b;
-  border: 1px solid #334155;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: #1f2937;
+  border: 1px solid var(--border-medium);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #cbd5e1;
+  color: var(--text-secondary);
 }
 
 .sidebar-profile-name {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
-  color: #f8fafc;
+  color: var(--text-primary);
 }
 
 .sidebar-profile-role {
-  font-size: 11px;
-  color: #94a3b8;
+  font-size: 10px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  text-transform: uppercase;
 }
 
 .sidebar-logout-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 8px 12px;
-  background: transparent;
+  gap: 6px;
+  padding: 7px 10px;
+  background: rgba(239, 68, 68, 0.08);
   color: #f87171;
-  border-radius: 6px;
-  border: 1px solid rgba(248, 113, 113, 0.2);
-  font-size: 12px;
+  border-radius: 5px;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  font-size: 11px;
   font-weight: 600;
+  cursor: pointer;
   width: 100%;
+  transition: all 0.15s ease;
 }
 .sidebar-logout-btn:hover {
-  background: rgba(248, 113, 113, 0.1);
-  border-color: #f87171;
+  background: rgba(239, 68, 68, 0.18);
+  border-color: #ef4444;
 }
 
-/* Overlay for Mobile Sidebar */
+/* Mobile Sidebar Overlay */
 .sidebar-overlay {
   display: none;
   position: fixed;
@@ -289,12 +301,15 @@ input, select, textarea {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(15, 23, 42, 0.5);
+  background: rgba(3, 7, 18, 0.7);
   backdrop-filter: blur(4px);
   z-index: 95;
 }
 
-/* Main Workspace Window */
+/* ==========================================================================
+   WORKSPACE MAIN WRAPPER
+   ========================================================================== */
+
 .workspace-wrapper {
   flex-grow: 1;
   display: flex;
@@ -302,15 +317,17 @@ input, select, textarea {
   height: 100vh;
   overflow-y: auto;
   min-width: 0;
+  background: var(--bg-app);
 }
 
 .workspace-header {
-  padding: 16px 32px;
-  border-bottom: 1px solid var(--border-light);
+  padding: 12px 28px;
+  border-bottom: 1px solid var(--border-subtle);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #ffffff;
+  background: rgba(11, 15, 23, 0.85);
+  backdrop-filter: blur(12px);
   position: sticky;
   top: 0;
   z-index: 90;
@@ -328,15 +345,15 @@ input, select, textarea {
   background: none;
   border: none;
   cursor: pointer;
-  padding: 6px;
+  padding: 4px;
 }
 
 .workspace-breadcrumbs {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 11px;
+  font-family: var(--font-mono);
   color: var(--text-muted);
 }
 .workspace-breadcrumbs span.active {
@@ -347,151 +364,166 @@ input, select, textarea {
 .workspace-status-badge {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  padding: 4px 10px;
+  border-radius: 999px;
 }
 .workspace-status-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
   background: #10b981;
+  box-shadow: 0 0 8px #10b981;
 }
 .workspace-status-text {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
-  color: #10b981;
-  letter-spacing: 0.05em;
+  color: #34d399;
+  letter-spacing: 0.06em;
+  font-family: var(--font-mono);
 }
 
 .workspace-content {
-  padding: 32px;
-  max-width: 1400px;
+  padding: 24px 28px 48px;
+  max-width: 1500px;
   width: 100%;
   margin: 0 auto;
 }
 
 /* ==========================================================================
-   UI COMPONENTS
+   PANEL CARDS & INDUSTRIAL CONTAINERS
    ========================================================================== */
 
-/* Panels and Cards */
 .panel-card {
   background: var(--bg-card);
-  border: 1px solid var(--border-light);
-  border-radius: 10px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
   box-shadow: var(--shadow-sm);
-  transition: all var(--transition-normal);
   position: relative;
-  overflow: hidden;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .panel-card:hover {
-  box-shadow: var(--shadow-md);
-  border-color: #cbd5e1;
+  border-color: var(--border-medium);
 }
 
-/* Premium Card Accent Top-border */
-.panel-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: transparent;
+.panel-card.accent-blue {
+  border-top: 2px solid var(--accent-cyan);
 }
-.panel-card.accent-blue::before { background: var(--accent-primary); }
-.panel-card.accent-green::before { background: var(--status-running); }
-.panel-card.accent-amber::before { background: var(--status-maintenance); }
-.panel-card.accent-red::before { background: var(--status-stopped); }
+.panel-card.accent-green {
+  border-top: 2px solid var(--status-running);
+}
+.panel-card.accent-amber {
+  border-top: 2px solid var(--status-maintenance);
+}
+.panel-card.accent-red {
+  border-top: 2px solid var(--status-stopped);
+}
 
-/* Responsive Grid Configurations */
+/* KPI Grids */
 .kpis-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-  margin-bottom: 32px;
+  gap: 16px;
+  margin-bottom: 24px;
 }
 
 .details-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 24px;
+  gap: 20px;
 }
 
 .machines-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 20px;
 }
 
-/* Status Badges */
+/* SCADA Status Pills */
 .status-pill {
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   padding: 3px 8px;
   border-radius: 4px;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
 }
 .status-pill.running {
   background: var(--status-running-bg);
-  color: var(--status-running);
+  color: #34d399;
+  border: 1px solid var(--status-running-border);
 }
 .status-pill.maintenance {
   background: var(--status-maintenance-bg);
-  color: var(--status-maintenance);
+  color: #fbbf24;
+  border: 1px solid var(--status-maintenance-border);
 }
 .status-pill.stopped {
   background: var(--status-stopped-bg);
-  color: var(--status-stopped);
+  color: #f87171;
+  border: 1px solid var(--status-stopped-border);
 }
 
-/* Interactive elements */
+/* Buttons */
 .btn-primary {
-  background: var(--accent-primary);
+  background: linear-gradient(135deg, #0284c7, #0369a1);
   color: #ffffff;
-  padding: 10px 16px;
+  padding: 8px 14px;
   border-radius: 6px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
-  border: 1px solid transparent;
+  border: 1px solid #38bdf8;
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
 .btn-primary:hover {
-  background: var(--accent-hover);
+  background: linear-gradient(135deg, #0369a1, #075985);
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
 }
 
 .btn-secondary {
-  background: #ffffff;
+  background: var(--bg-card-secondary);
   color: var(--text-secondary);
-  border: 1px solid var(--border-light);
-  padding: 10px 16px;
+  border: 1px solid var(--border-medium);
+  padding: 8px 14px;
   border-radius: 6px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
 .btn-secondary:hover {
   background: var(--bg-hover);
-  border-color: #cbd5e1;
+  color: var(--text-primary);
+  border-color: var(--border-highlight);
 }
 
 /* Spinner */
 .spinner {
-  width: 32px;
-  height: 32px;
-  border: 2px solid #e2e8f0;
-  border-top-color: var(--accent-primary);
+  width: 28px;
+  height: 28px;
+  border: 2px solid var(--border-medium);
+  border-top-color: var(--accent-cyan);
   border-radius: 50%;
-  animation: spin 1s linear infinite;
+  animation: spin 0.8s linear infinite;
 }
 
-/* Custom CSS Bar Chart */
+/* ==========================================================================
+   CHARTS & TELEMETRY CAPSULES
+   ========================================================================== */
+
 .chart-container {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  height: 240px;
-  border-bottom: 2px solid var(--border-light);
+  height: 220px;
+  border-bottom: 1px solid var(--border-subtle);
   padding-bottom: 8px;
   margin: 16px 0;
 }
@@ -509,25 +541,25 @@ input, select, textarea {
   flex-direction: column;
   align-items: center;
   flex-grow: 1;
-  max-width: 50px;
+  max-width: 48px;
 }
 
 .chart-bar-capsule {
   position: relative;
-  width: 16px;
-  background: #f1f5f9;
-  border-radius: 99px;
-  height: 180px;
+  width: 14px;
+  background: #1f2937;
+  border-radius: 3px;
+  height: 160px;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
   overflow: hidden;
+  border: 1px solid var(--border-subtle);
 }
 
 .chart-bar-fill {
-  background: var(--accent-primary);
-  border-radius: 99px;
-  transition: height var(--transition-normal);
+  border-radius: 2px;
+  transition: height 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   width: 100%;
 }
 
@@ -536,8 +568,9 @@ input, select, textarea {
   left: 0;
   right: 0;
   height: 2px;
-  background: rgba(239, 68, 68, 0.7);
+  background: #f87171;
   z-index: 2;
+  box-shadow: 0 0 4px #ef4444;
 }
 
 .chart-bar-label {
@@ -546,7 +579,7 @@ input, select, textarea {
   font-weight: 600;
   margin-top: 8px;
   text-align: center;
-  text-transform: uppercase;
+  font-family: var(--font-mono);
 }
 
 .chart-bar-value {
@@ -554,12 +587,10 @@ input, select, textarea {
   color: var(--text-primary);
   font-weight: 700;
   margin-bottom: 4px;
+  font-family: var(--font-mono);
 }
 
-/* ==========================================================================
-   RESPONSIVE MEDIA QUERIES
-   ========================================================================== */
-
+/* Responsive adjustments */
 @media (max-width: 1024px) {
   .kpis-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -573,25 +604,22 @@ input, select, textarea {
     bottom: 0;
     left: 0;
     transform: translateX(-100%);
-    box-shadow: none;
   }
   .app-sidebar.open {
     transform: translateX(0);
-    box-shadow: var(--shadow-lg);
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
   }
   .sidebar-overlay.open {
     display: block;
   }
   .mobile-menu-toggle {
     display: flex;
-    align-items: center;
-    justify-content: center;
   }
   .workspace-header {
-    padding: 16px 20px;
+    padding: 12px 16px;
   }
   .workspace-content {
-    padding: 20px;
+    padding: 16px;
   }
   .details-grid {
     grid-template-columns: 1fr;
@@ -602,12 +630,8 @@ input, select, textarea {
   .kpis-grid {
     grid-template-columns: 1fr;
   }
-  .workspace-breadcrumbs {
-    font-size: 10px;
-  }
 }
 
-/* Animation declarations */
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { Factory, MapPin, LogOut, ArrowRight, Shield } from 'lucide-react';
+import { Factory, MapPin, LogOut, ArrowRight, Cpu, Radio, Activity } from 'lucide-react';
 import { API_BASE_URL } from '../api/config';
 
 const SelectPlant = () => {
@@ -17,7 +17,7 @@ const SelectPlant = () => {
             try {
                 const response = await fetch(`${API_BASE_URL}/plants/user/${user.user_id}`);
                 if (!response.ok) {
-                    throw new Error('Failed to fetch plants');
+                    throw new Error('Failed to fetch assigned plants');
                 }
                 const data = await response.json();
                 
@@ -61,19 +61,14 @@ const SelectPlant = () => {
                 display: 'flex', 
                 alignItems: 'center', 
                 justifyContent: 'center', 
-                background: '#f8fafc', 
-                color: '#334155' 
+                background: '#0b0f17', 
+                color: '#f3f4f6' 
             }}>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
-                    <div style={{ 
-                        width: '32px', 
-                        height: '32px', 
-                        border: '2px solid #e2e8f0', 
-                        borderTopColor: '#2563eb', 
-                        borderRadius: '50%', 
-                        animation: 'spin 1s linear infinite' 
-                    }} />
-                    <p style={{ color: '#64748b', fontSize: '14px', fontWeight: '500' }}>Loading workspaces...</p>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px' }}>
+                    <div className="spinner" />
+                    <p style={{ color: '#9ca3af', fontSize: '12px', fontFamily: 'JetBrains Mono, monospace' }}>
+                        INITIALIZING TOPOLOGY...
+                    </p>
                 </div>
             </div>
         );
@@ -82,76 +77,108 @@ const SelectPlant = () => {
     return (
         <div style={{
             minHeight: '100vh',
-            background: '#f8fafc',
-            color: '#0f172a',
-            padding: '48px 24px'
+            background: 'radial-gradient(ellipse at top, #111827, #070a0f)',
+            color: '#f3f4f6',
+            padding: '36px 24px',
+            position: 'relative'
         }}>
-            <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
+            {/* Background SCADA grid */}
+            <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundImage: `linear-gradient(rgba(31, 41, 55, 0.3) 1px, transparent 1px),
+                                  linear-gradient(90deg, rgba(31, 41, 55, 0.3) 1px, transparent 1px)`,
+                backgroundSize: '32px 32px',
+                pointerEvents: 'none',
+                opacity: 0.5
+            }} />
+
+            <div style={{ maxWidth: '1100px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
                 
                 {/* Header */}
                 <div style={{ 
                     display: 'flex', 
                     justifyContent: 'space-between', 
                     alignItems: 'center', 
-                    marginBottom: '40px',
-                    borderBottom: '1px solid #e2e8f0',
+                    marginBottom: '36px',
+                    borderBottom: '1px solid #1f2937',
                     paddingBottom: '20px'
                 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <div style={{ background: '#eff6ff', color: '#2563eb', padding: '8px', borderRadius: '6px' }}>
-                            <Shield size={20} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{ 
+                            background: 'rgba(6, 182, 212, 0.12)', 
+                            color: '#06b6d4', 
+                            padding: '8px', 
+                            borderRadius: '6px',
+                            border: '1px solid rgba(6, 182, 212, 0.3)'
+                        }}>
+                            <Cpu size={20} />
                         </div>
                         <div>
-                            <span style={{ fontSize: '11px', color: '#64748b', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Operator Portal</span>
-                            <h1 style={{ fontSize: '20px', fontWeight: '700', color: '#0f172a', margin: 0 }}>Smart Manufacturing</h1>
+                            <span style={{ fontSize: '10px', color: '#6b7280', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: 'JetBrains Mono, monospace' }}>
+                                FACTORY OS • ENTERPRISE FLEET
+                            </span>
+                            <h1 style={{ fontSize: '18px', fontWeight: '700', color: '#f9fafb', margin: 0, letterSpacing: '-0.01em' }}>
+                                Plant Topology Selector
+                            </h1>
                         </div>
                     </div>
+                    
                     <button 
                         onClick={handleLogout}
                         style={{
                             display: 'flex',
                             alignItems: 'center',
                             gap: '6px',
-                            padding: '8px 14px',
-                            background: '#ffffff',
-                            color: '#ef4444',
+                            padding: '7px 12px',
+                            background: 'rgba(239, 68, 68, 0.08)',
+                            color: '#f87171',
                             borderRadius: '6px',
-                            border: '1px solid #e2e8f0',
+                            border: '1px solid rgba(239, 68, 68, 0.2)',
                             fontWeight: '600',
-                            fontSize: '13px'
+                            fontSize: '12px',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s ease'
                         }}
                         onMouseOver={(e) => {
-                            e.currentTarget.style.background = '#fef2f2';
-                            e.currentTarget.style.borderColor = '#fca5a5';
+                            e.currentTarget.style.background = 'rgba(239, 68, 68, 0.18)';
+                            e.currentTarget.style.borderColor = '#ef4444';
                         }}
                         onMouseOut={(e) => {
-                            e.currentTarget.style.background = '#ffffff';
-                            e.currentTarget.style.borderColor = '#e2e8f0';
+                            e.currentTarget.style.background = 'rgba(239, 68, 68, 0.08)';
+                            e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.2)';
                         }}
                     >
-                        <LogOut size={14} />
+                        <LogOut size={13} />
                         Sign Out
                     </button>
                 </div>
 
-                <div style={{ marginBottom: '32px' }}>
-                    <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#0f172a', marginBottom: '6px' }}>
-                        Welcome back, {user?.name}
-                    </h2>
-                    <p style={{ color: '#64748b', fontSize: '14px' }}>
-                        Select a manufacturing plant below to open the operator dashboard.
+                <div style={{ marginBottom: '28px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                        <span style={{ fontSize: '12px', color: '#06b6d4', fontFamily: 'JetBrains Mono, monospace', fontWeight: '600' }}>
+                            OPERATOR: {user?.name?.toUpperCase()}
+                        </span>
+                        <span style={{ color: '#4b5563' }}>•</span>
+                        <span style={{ fontSize: '12px', color: '#9ca3af' }}>Select Active Manufacturing Node</span>
+                    </div>
+                    <p style={{ color: '#6b7280', fontSize: '13px', margin: 0 }}>
+                        Target factory workspace will bind telemetry, machine feeds, and job dispatchers.
                     </p>
                 </div>
 
                 {error && (
                     <div style={{ 
-                        background: '#fef2f2', 
-                        border: '1px solid #fee2e2',
-                        color: '#b91c1c', 
-                        padding: '12px 16px', 
+                        background: 'rgba(239, 68, 68, 0.1)', 
+                        border: '1px solid rgba(239, 68, 68, 0.3)',
+                        color: '#f87171', 
+                        padding: '10px 14px', 
                         borderRadius: '6px', 
                         marginBottom: '24px',
-                        fontSize: '14px'
+                        fontSize: '13px'
                     }}>
                         {error}
                     </div>
@@ -159,62 +186,99 @@ const SelectPlant = () => {
 
                 {plants.length === 0 ? (
                     <div style={{ 
-                        background: '#ffffff', 
+                        background: '#111827', 
                         padding: '48px', 
                         textAlign: 'center', 
-                        border: '1px solid #e2e8f0',
+                        border: '1px solid #1f2937',
                         borderRadius: '8px'
                     }}>
-                        <Factory size={40} style={{ color: '#94a3b8', margin: '0 auto 16px' }} />
-                        <h3 style={{ fontSize: '18px', color: '#334155', marginBottom: '6px' }}>No Assigned Plants</h3>
-                        <p style={{ color: '#64748b', fontSize: '14px' }}>
-                            There are no manufacturing plants assigned to your account.
+                        <Factory size={36} style={{ color: '#4b5563', margin: '0 auto 12px' }} />
+                        <h3 style={{ fontSize: '16px', color: '#e5e7eb', marginBottom: '4px' }}>No Assigned Production Nodes</h3>
+                        <p style={{ color: '#9ca3af', fontSize: '13px', margin: 0 }}>
+                            Please contact system engineering to grant plant workspace access.
                         </p>
                     </div>
                 ) : (
                     <div style={{
                         display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-                        gap: '24px'
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+                        gap: '20px'
                     }}>
                         {plants.map((plant) => (
                             <div 
                                 key={plant.id}
                                 onClick={() => handleSelectPlant(plant)}
                                 style={{
-                                    padding: '24px',
+                                    padding: '22px',
                                     cursor: 'pointer',
                                     display: 'flex',
                                     flexDirection: 'column',
-                                    background: '#ffffff',
-                                    border: '1px solid #e2e8f0',
+                                    background: '#111827',
+                                    border: '1px solid #1f2937',
                                     borderRadius: '8px',
                                     transition: 'all 0.15s ease',
-                                    boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.05)'
+                                    position: 'relative',
+                                    overflow: 'hidden'
                                 }}
                                 onMouseOver={(e) => {
-                                    e.currentTarget.style.borderColor = '#cbd5e1';
-                                    e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.05)';
+                                    e.currentTarget.style.borderColor = '#06b6d4';
+                                    e.currentTarget.style.boxShadow = '0 8px 24px -4px rgba(6, 182, 212, 0.2)';
+                                    e.currentTarget.style.transform = 'translateY(-2px)';
                                 }}
                                 onMouseOut={(e) => {
-                                    e.currentTarget.style.borderColor = '#e2e8f0';
-                                    e.currentTarget.style.boxShadow = '0 1px 3px 0 rgba(0, 0, 0, 0.05)';
+                                    e.currentTarget.style.borderColor = '#1f2937';
+                                    e.currentTarget.style.boxShadow = 'none';
+                                    e.currentTarget.style.transform = 'translateY(0)';
                                 }}
                             >
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-                                    <div style={{ 
-                                        background: '#eff6ff',
-                                        color: '#2563eb',
-                                        padding: '8px', 
-                                        borderRadius: '6px'
-                                    }}>
-                                        <Factory size={18} />
+                                <div style={{
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: 0,
+                                    right: 0,
+                                    height: '2px',
+                                    background: 'linear-gradient(90deg, #06b6d4, #3b82f6)'
+                                }} />
+
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                        <div style={{ 
+                                            background: 'rgba(6, 182, 212, 0.1)',
+                                            color: '#06b6d4',
+                                            padding: '8px', 
+                                            borderRadius: '6px',
+                                            border: '1px solid rgba(6, 182, 212, 0.25)'
+                                        }}>
+                                            <Factory size={18} />
+                                        </div>
+                                        <div>
+                                            <h2 style={{ fontSize: '16px', fontWeight: '700', color: '#f3f4f6', margin: 0 }}>
+                                                {plant.name}
+                                            </h2>
+                                            <span style={{ fontSize: '10px', color: '#6b7280', fontFamily: 'JetBrains Mono, monospace' }}>
+                                                NODE ID: #{plant.id}
+                                            </span>
+                                        </div>
                                     </div>
-                                    <h2 style={{ fontSize: '18px', fontWeight: '600', color: '#0f172a' }}>{plant.name}</h2>
+
+                                    <div style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '4px',
+                                        background: 'rgba(16, 185, 129, 0.1)',
+                                        border: '1px solid rgba(16, 185, 129, 0.3)',
+                                        padding: '2px 6px',
+                                        borderRadius: '4px'
+                                    }}>
+                                        <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#10b981' }} />
+                                        <span style={{ fontSize: '9px', color: '#34d399', fontWeight: '700', fontFamily: 'JetBrains Mono, monospace' }}>
+                                            ONLINE
+                                        </span>
+                                    </div>
                                 </div>
                                 
-                                <p style={{ color: '#475569', fontSize: '13px', lineHeight: '1.5', marginBottom: '20px', flexGrow: 1 }}>
-                                    {plant.description || 'No description provided.'}
+                                <p style={{ color: '#9ca3af', fontSize: '12.5px', lineHeight: '1.5', marginBottom: '20px', flexGrow: 1 }}>
+                                    {plant.description || 'Full-cycle automated fabrication, telemetry diagnostics and job scheduling enabled.'}
                                 </p>
                                 
                                 <div style={{ 
@@ -222,22 +286,22 @@ const SelectPlant = () => {
                                     justifyContent: 'space-between', 
                                     alignItems: 'center', 
                                     paddingTop: '12px', 
-                                    borderTop: '1px solid #f1f5f9' 
+                                    borderTop: '1px solid #1f2937' 
                                 }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#64748b', fontSize: '12px' }}>
-                                        <MapPin size={14} />
-                                        <span>{plant.location || 'N/A'}</span>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#6b7280', fontSize: '11px', fontFamily: 'JetBrains Mono, monospace' }}>
+                                        <MapPin size={13} color="#9ca3af" />
+                                        <span>{plant.location || 'SITE-A'}</span>
                                     </div>
                                     <div style={{ 
-                                        color: '#2563eb', 
+                                        color: '#38bdf8', 
                                         display: 'flex', 
                                         alignItems: 'center', 
                                         gap: '4px',
-                                        fontSize: '13px',
-                                        fontWeight: '600'
+                                        fontSize: '12px',
+                                        fontWeight: '700'
                                     }}>
-                                        Open
-                                        <ArrowRight size={14} />
+                                        Access Node
+                                        <ArrowRight size={13} />
                                     </div>
                                 </div>
                             </div>
