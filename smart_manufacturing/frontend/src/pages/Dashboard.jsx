@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { 
     LogOut, Factory, Activity, AlertTriangle, Settings, Bell, 
-    CheckCircle2, Clock, AlertCircle, Sliders, Layers, User, Menu, X, Zap
+    CheckCircle2, Clock, AlertCircle, Sliders, Layers, User, Menu, X, Zap, Calendar
 } from 'lucide-react';
 import { API_BASE_URL } from '../api/config';
 
@@ -194,9 +194,16 @@ const Dashboard = () => {
                             Machine Insights
                         </button>
                         <button
-                            onClick={() => navigate('/kiosk')}
+                            onClick={() => navigate('/scheduling')}
                             className="sidebar-nav-item"
                             style={{ borderTop: '1px solid rgba(255,255,255,0.06)', marginTop: 4, paddingTop: 12 }}
+                        >
+                            <Calendar size={16} />
+                            Job Scheduling
+                        </button>
+                        <button
+                            onClick={() => navigate('/kiosk')}
+                            className="sidebar-nav-item"
                         >
                             <Zap size={16} />
                             Machine Kiosk

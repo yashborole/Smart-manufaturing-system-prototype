@@ -6,6 +6,7 @@ import SelectPlant from './pages/SelectPlant';
 import Dashboard from './pages/Dashboard';
 import MachineInsight from './pages/MachineInsight';
 import MachineKiosk from './pages/MachineKiosk';
+import JobScheduling from './pages/JobScheduling';
 import './App.css';
 
 const ProtectedRoute = ({ children, requirePlant = false }) => {
@@ -59,6 +60,14 @@ function App() {
                             element={
                                 <ProtectedRoute requirePlant={true}>
                                     <MachineKiosk />
+                                </ProtectedRoute>
+                            } 
+                        />
+                        <Route 
+                            path="/scheduling" 
+                            element={
+                                <ProtectedRoute requirePlant={true}>
+                                    <JobScheduling />
                                 </ProtectedRoute>
                             } 
                         />

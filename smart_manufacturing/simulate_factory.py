@@ -22,7 +22,7 @@ from datetime import datetime, date
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from app.database import SessionLocal
-from app.models import Machine, Production, ActivityLog, Alert
+from app.models import Machine, Production, ActivityLog, Alert, Job
 
 # ─────────────────────────────────────────────
 # CONFIG
@@ -245,6 +245,14 @@ def simulate_tick():
             prod.oee_score      = oee
             if defect_type_this_tick:
                 prod.defect_type = defect_type_this_tick
+
+            # Advance units_produced on active running job if assigned
+            if machine.current_job_id:
+                active_job = db.query(Job).filter(Job.id == machine.current_job_id, Job.status == "Running").first()
+                if active_job:
+                    active_job.units_produced = min(active_job.target_qty, (active_job.units_produced or 0) + units_this_tick)
+                    if active_job.units_produced >= active_job.target_qty:
+                        print(f"  [{machine.name}] Job '{active_job.title}' reached target ({active_job.units_produced}/{active_job.target_qty})")
 
             # Advance tool wear
             state["tool_wear"] = min(state["tool_wear"] + TOOL_WEAR_PER_TICK, 100.0)

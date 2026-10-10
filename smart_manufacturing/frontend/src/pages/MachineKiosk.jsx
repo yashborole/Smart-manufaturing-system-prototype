@@ -174,13 +174,16 @@ export default function MachineKiosk() {
       const res = await fetch(`${API}/kiosk/machines/${selectedPlant.id}`);
       if (!res.ok) return;
       const data = await res.json();
-      if (Array.isArray(data)) {
+      if (Array.isArray(data) && data.length > 0) {
         setMachines(data);
-        // sync selected machine
-        if (selectedMachine) {
-          const updated = data.find(m => m.id === selectedMachine.id);
-          if (updated) setSelectedMachine(updated);
-        }
+        setSelectedMachine(prev => {
+          if (!prev) {
+            // Auto-select first running machine, or first machine
+            return data.find(m => m.status === 'Running') || data[0];
+          }
+          const updated = data.find(m => m.id === prev.id);
+          return updated || prev;
+        });
       }
     } catch (e) {
       console.error(e);
@@ -189,8 +192,8 @@ export default function MachineKiosk() {
     }
   };
 
-  const fetchJobs = async (machineId) => {
-    setJobsLoading(true);
+  const fetchJobs = async (machineId, silent = false) => {
+    if (!silent) setJobsLoading(true);
     try {
       const res = await fetch(`${API}/kiosk/jobs/${machineId}`);
       if (!res.ok) return;
@@ -199,7 +202,7 @@ export default function MachineKiosk() {
     } catch (e) {
       console.error(e);
     } finally {
-      setJobsLoading(false);
+      if (!silent) setJobsLoading(false);
     }
   };
 
@@ -216,16 +219,22 @@ export default function MachineKiosk() {
 
   useEffect(() => {
     fetchMachines();
-    const interval = setInterval(fetchMachines, 8000);
+    const interval = setInterval(fetchMachines, 3000);
     return () => clearInterval(interval);
   }, [selectedPlant]);
 
   useEffect(() => {
-    if (selectedMachine) {
-      fetchJobs(selectedMachine.id);
-      fetchLogs(selectedMachine.id);
-    }
-  }, [selectedMachine?.id]);
+    if (!selectedMachine?.id) return;
+    fetchJobs(selectedMachine.id);
+    fetchLogs(selectedMachine.id);
+    const interval = setInterval(() => {
+      fetchJobs(selectedMachine.id, true);
+      if (selectedMachine.status === 'Running') {
+        fetchLogs(selectedMachine.id);
+      }
+    }, 2500);
+    return () => clearInterval(interval);
+  }, [selectedMachine?.id, selectedMachine?.status]);
 
   const selectMachine = (m) => {
     setSelectedMachine(m);
@@ -410,24 +419,54 @@ export default function MachineKiosk() {
     }
   };
 
-  const runningJob = jobs.find(j => j.status === 'Running');
+  const runningJob = jobs.find(j => j.status === 'Running')
+    || (selectedMachine?.current_job_id ? jobs.find(j => j.id === selectedMachine.current_job_id) : null)
+    || (selectedMachine?.current_job_title ? {
+        id: selectedMachine.current_job_id || 0,
+        title: selectedMachine.current_job_title,
+        part_name: selectedMachine.current_job_part || 'Workpiece',
+        target_qty: selectedMachine.current_job_target || 100,
+        units_produced: selectedMachine.current_job_produced || 0,
+        priority: 'Normal',
+        status: 'Running'
+      } : null);
+
   const scheduledJobs = jobs.filter(j => j.status === 'Scheduled');
   const pendingJobs = jobs.filter(j => j.status === 'Pending');
   const historyJobs = jobs.filter(j => ['Completed', 'Cancelled'].includes(j.status));
+
+  const currentProduced = runningJob ? (runningJob.units_produced || 0) : 0;
+  const currentTarget = runningJob ? (runningJob.target_qty || 1) : 1;
   const progress = runningJob
-    ? Math.min(100, Math.round((runningJob.units_produced / runningJob.target_qty) * 100))
+    ? Math.min(100, Math.round((currentProduced / currentTarget) * 100))
     : 0;
+
+  // Keep latest refs to prevent stale closures during the cycle interval
+  const runningJobRef = useRef(runningJob);
+  useEffect(() => {
+    runningJobRef.current = runningJob;
+  }, [runningJob]);
+
+  const selectedMachineRef = useRef(selectedMachine);
+  useEffect(() => {
+    selectedMachineRef.current = selectedMachine;
+  }, [selectedMachine]);
+
+  const isProducingRef = useRef(false);
 
   // ── Produce Unit Handler (Manual or Simulated Pulse) ──────────────────────
   const handleProduce = async (count = 1) => {
-    if (!runningJob) return;
+    const job = runningJobRef.current;
+    if (!job || isProducingRef.current) return;
+    isProducingRef.current = true;
+
     const addCount = Math.max(1, count);
-    const target = runningJob.target_qty;
-    const nextUnits = Math.min(target, (runningJob.units_produced || 0) + addCount);
+    const target = job.target_qty;
+    const nextUnits = Math.min(target, (job.units_produced || 0) + addCount);
 
     // Optimistically update jobs state immediately
     setJobs(prevJobs => prevJobs.map(j => {
-      if (j.id === runningJob.id) {
+      if (j.id === job.id) {
         return { ...j, units_produced: nextUnits };
       }
       return j;
@@ -435,32 +474,38 @@ export default function MachineKiosk() {
 
     // Optimistically update machines list count
     setMachines(prevMachines => prevMachines.map(m => {
-      if (m.id === selectedMachine?.id) {
+      if (m.id === selectedMachineRef.current?.id) {
         return { ...m, current_job_produced: nextUnits };
       }
       return m;
     }));
 
     try {
-      const res = await fetch(`${API}/kiosk/jobs/${runningJob.id}/produce`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ count: addCount })
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.target_reached) {
-          showToast(`🎯 Production target reached (${data.units_produced}/${data.target_qty} units)! Ready to complete.`, 'success');
+      if (job.id) {
+        const res = await fetch(`${API}/kiosk/jobs/${job.id}/produce`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ count: addCount })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.target_reached) {
+            showToast(`🎯 Production target reached (${data.units_produced}/${data.target_qty} units)! Ready to complete.`, 'success');
+          }
         }
       }
     } catch (e) {
       console.error('Failed to increment unit:', e);
+    } finally {
+      isProducingRef.current = false;
     }
   };
 
   // ── Auto Machining Cycle Simulation Effect ─────────────────────────────────
+  const isTargetMet = runningJob ? (currentProduced >= currentTarget) : false;
+
   useEffect(() => {
-    if (!isRunning || !runningJob || !autoSimulate || (runningJob.units_produced >= runningJob.target_qty)) {
+    if (!isRunning || !runningJob || !autoSimulate || isTargetMet) {
       setCycleElapsed(0);
       return;
     }
@@ -477,7 +522,7 @@ export default function MachineKiosk() {
     }, 100);
 
     return () => clearInterval(interval);
-  }, [isRunning, runningJob?.id, autoSimulate, runningJob?.units_produced, runningJob?.target_qty]);
+  }, [isRunning, runningJob?.id, autoSimulate, isTargetMet]);
 
   const cfg = selectedMachine ? (STATUS_CONFIG[selectedMachine.status] || STATUS_CONFIG.Stopped) : null;
 
@@ -504,6 +549,25 @@ export default function MachineKiosk() {
           <span style={st.plantBadge}>{selectedPlant?.name}</span>
         </div>
         <div style={st.headerRight}>
+          <button 
+            onClick={() => navigate('/scheduling')} 
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              background: 'rgba(99,102,241,0.15)',
+              border: '1px solid rgba(99,102,241,0.4)',
+              color: '#818cf8',
+              borderRadius: 8,
+              padding: '6px 12px',
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            <Calendar size={14} />
+            Job Schedule
+          </button>
           <button onClick={toggleTheme} style={st.themeBtn} title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}>
             {isDark ? <Sun size={16} /> : <Moon size={16} />}
           </button>
@@ -612,7 +676,7 @@ export default function MachineKiosk() {
                     </div>
 
                     {/* Target Met Banner */}
-                    {runningJob.units_produced >= runningJob.target_qty && (
+                    {currentProduced >= currentTarget && (
                       <div style={{
                         background: 'rgba(34, 197, 94, 0.15)',
                         border: '1px solid rgba(34, 197, 94, 0.35)',
@@ -635,14 +699,14 @@ export default function MachineKiosk() {
                       <div style={{
                         ...st.progressFill,
                         width: `${progress}%`,
-                        background: runningJob.units_produced >= runningJob.target_qty
+                        background: currentProduced >= currentTarget
                           ? '#22c55e'
                           : 'linear-gradient(90deg, #6366f1, #22c55e)',
-                        backgroundImage: runningJob.units_produced < runningJob.target_qty && autoSimulate
+                        backgroundImage: currentProduced < currentTarget && autoSimulate
                           ? 'linear-gradient(45deg, rgba(255,255,255,0.18) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.18) 50%, rgba(255,255,255,0.18) 75%, transparent 75%, transparent)'
                           : 'none',
                         backgroundSize: '30px 30px',
-                        animation: runningJob.units_produced < runningJob.target_qty && autoSimulate
+                        animation: currentProduced < currentTarget && autoSimulate
                           ? 'progressStripes 1.5s linear infinite'
                           : 'none',
                         boxShadow: '0 0 10px rgba(34, 197, 94, 0.4)'
@@ -650,12 +714,12 @@ export default function MachineKiosk() {
                     </div>
 
                     <div style={st.progressLabel}>
-                      <span><strong>{runningJob.units_produced}</strong> / {runningJob.target_qty} units produced</span>
+                      <span><strong>{currentProduced}</strong> / {currentTarget} units produced</span>
                       <span style={{ fontWeight: 700, color: progress === 100 ? '#22c55e' : T.text }}>{progress}%</span>
                     </div>
 
                     {/* Live Machining Cycle Simulation Toolbar */}
-                    {runningJob.units_produced < runningJob.target_qty && (
+                    {currentProduced < currentTarget && (
                       <div style={{
                         marginTop: 12,
                         padding: '10px 12px',
