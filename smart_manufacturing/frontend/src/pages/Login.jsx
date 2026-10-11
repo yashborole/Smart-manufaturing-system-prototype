@@ -25,9 +25,24 @@ const Login = () => {
         setIsLoading(true);
 
         try {
-            const response = await fetch(`${API_BASE_URL}/users/login?user_name=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`, {
+            const url = `${API_BASE_URL}/users/login?user_name=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`;
+            const response = await fetch(url, {
                 method: 'POST',
             });
+
+            const contentType = response.headers.get('content-type') || '';
+            if (!contentType.includes('application/json')) {
+                const text = await response.text();
+                if (text.includes('<!DOCTYPE') || text.includes('<html')) {
+                    const isNetlify = typeof window !== 'undefined' && window.location.hostname.includes('netlify.app');
+                    throw new Error(
+                        isNetlify
+                            ? 'Backend server not connected: Netlify returned HTML instead of API JSON. Please set the VITE_API_URL environment variable in your Netlify site settings to point to your deployed FastAPI backend URL.'
+                            : 'Backend server not responding with JSON. Please ensure FastAPI is running on port 8000.'
+                    );
+                }
+                throw new Error(`Server returned unexpected format (${response.status})`);
+            }
 
             const data = await response.json();
 
