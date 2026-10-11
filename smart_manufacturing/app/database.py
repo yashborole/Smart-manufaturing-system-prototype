@@ -5,7 +5,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
 
 # Load environment variables from .env
-load_dotenv()
+_env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env")
+if os.path.exists(_env_path):
+    load_dotenv(_env_path)
+else:
+    load_dotenv()
 
 # Load DATABASE_URL from environment variable with fallback
 DATABASE_URL = os.getenv(

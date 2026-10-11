@@ -9,8 +9,12 @@ import os
 import sys
 from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
+# Load environment variables (from script dir or cwd)
+_env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
+if os.path.exists(_env_path):
+    load_dotenv(_env_path)
+else:
+    load_dotenv()
 
 # Ensure current directory is in sys.path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -79,7 +83,7 @@ def init_db():
             db.refresh(demo_user)
             print("Demo user 'demo_user' created successfully.")
 
-        # 4. Check / Create Default Plants if none exist
+        # 4. Check / Create Default Plants & Demo Machines if none exist
         plant_count = db.query(Plant).count()
         if plant_count == 0:
             print("No plants found. Seeding initial manufacturing plants...")
@@ -98,11 +102,10 @@ def init_db():
                     p2.users.append(admin_user)
                 db.commit()
 
-        # Ensure demo user is assigned strictly to Mumbai Plant only
-        mumbai_plant = db.query(Plant).filter(Plant.name == "Mumbai Plant").first()
-        if demo_user and mumbai_plant:
-            demo_user.plants = [mumbai_plant]
-            db.commit()
+            # Ensure demo user is assigned strictly to Mumbai Plant
+            if demo_user:
+                p1.users.append(demo_user)
+                db.commit()
 
             # Add demo machines to Mumbai Plant
             m1 = Machine(name="CNC Milling 01", machine_type="CNC", status="Running", plant_id=p1.id)
@@ -137,6 +140,13 @@ def init_db():
             print("Initial plants and machines created successfully.")
         else:
             print(f"Found {plant_count} existing plant(s). Skipping demo seed.")
+
+            # If plants already exist, ensure demo_user is linked to Mumbai Plant
+            if demo_user:
+                mumbai_plant = db.query(Plant).filter(Plant.name == "Mumbai Plant").first()
+                if mumbai_plant and demo_user not in mumbai_plant.users:
+                    mumbai_plant.users.append(demo_user)
+                    db.commit()
 
     except Exception as e:
         db.rollback()
