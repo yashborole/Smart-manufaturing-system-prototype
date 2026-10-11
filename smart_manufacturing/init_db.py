@@ -43,10 +43,9 @@ def init_db():
 
     db = SessionLocal()
     try:
-        # 2. Check / Create Admin User
-        admin_username = os.getenv("ADMIN_USERNAME")
+        admin_username = os.getenv("ADMIN_USERNAME", "admin")
         admin_email = os.getenv("ADMIN_EMAIL", "admin@smartmes.com")
-        admin_password = os.getenv("ADMIN_PASSWORD")
+        admin_password = os.getenv("ADMIN_PASSWORD", "admin123")
 
         admin_user = None
         if admin_username and admin_password:
