@@ -7,6 +7,10 @@ if the database is fresh. Safe to run multiple times (idempotent).
 
 import os
 import sys
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Ensure current directory is in sys.path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -40,26 +44,43 @@ def init_db():
     db = SessionLocal()
     try:
         # 2. Check / Create Admin User
-        admin_username = os.getenv("ADMIN_USERNAME", "admin")
+        admin_username = os.getenv("ADMIN_USERNAME")
         admin_email = os.getenv("ADMIN_EMAIL", "admin@smartmes.com")
-        admin_password = os.getenv("ADMIN_PASSWORD", "admin123")
+        admin_password = os.getenv("ADMIN_PASSWORD")
 
-        admin_user = db.query(User).filter(User.name == admin_username).first()
-        if not admin_user:
-            print(f"Creating default admin user '{admin_username}'...")
-            admin_user = User(
-                name=admin_username,
-                email=admin_email,
-                hashed_password=get_password_hash(admin_password),
-            )
-            db.add(admin_user)
-            db.commit()
-            db.refresh(admin_user)
-            print(f"Admin user '{admin_username}' created successfully.")
+        admin_user = None
+        if admin_username and admin_password:
+            admin_user = db.query(User).filter(User.name == admin_username).first()
+            if not admin_user:
+                print(f"Creating default admin user '{admin_username}'...")
+                admin_user = User(
+                    name=admin_username,
+                    email=admin_email,
+                    hashed_password=get_password_hash(admin_password),
+                )
+                db.add(admin_user)
+                db.commit()
+                db.refresh(admin_user)
+                print(f"Admin user '{admin_username}' created successfully.")
+            else:
+                print(f"Admin user '{admin_username}' already exists.")
         else:
-            print(f"Admin user '{admin_username}' already exists.")
+            print("Notice: ADMIN_USERNAME or ADMIN_PASSWORD not configured in environment. Skipping admin seed.")
 
-        # 3. Check / Create Default Plants if none exist
+        # 3. Check / Create Demo User (for public demo access)
+        demo_user = db.query(User).filter(User.name == "demo_user").first()
+        if not demo_user:
+            demo_user = User(
+                name="demo_user",
+                email="demo@smartmes.com",
+                hashed_password=get_password_hash("demo123"),
+            )
+            db.add(demo_user)
+            db.commit()
+            db.refresh(demo_user)
+            print("Demo user 'demo_user' created successfully.")
+
+        # 4. Check / Create Default Plants if none exist
         plant_count = db.query(Plant).count()
         if plant_count == 0:
             print("No plants found. Seeding initial manufacturing plants...")
@@ -70,11 +91,19 @@ def init_db():
             db.refresh(p1)
             db.refresh(p2)
 
-            # Assign admin user to plants
-            if admin_user not in p1.users:
-                p1.users.append(admin_user)
-            if admin_user not in p2.users:
-                p2.users.append(admin_user)
+            # Assign admin user to plants if created
+            if admin_user:
+                if admin_user not in p1.users:
+                    p1.users.append(admin_user)
+                if admin_user not in p2.users:
+                    p2.users.append(admin_user)
+                db.commit()
+
+        # Ensure demo user is assigned strictly to Mumbai Plant only
+        mumbai_plant = db.query(Plant).filter(Plant.name == "Mumbai Plant").first()
+        if demo_user and mumbai_plant:
+            demo_user.plants = [mumbai_plant]
+            db.commit()
 
             # Add demo machines to Mumbai Plant
             m1 = Machine(name="CNC Milling 01", machine_type="CNC", status="Running", plant_id=p1.id)

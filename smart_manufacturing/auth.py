@@ -19,7 +19,9 @@ router = APIRouter(
     tags=['auth']
 )
 
-SECRET_KEY = "QoLnu7fr0LNrcEiVEnLSdDijHeExk8kpRzFKA4sbxzP"
+import os
+
+SECRET_KEY = os.getenv("SECRET_KEY", "QoLnu7fr0LNrcEiVEnLSdDijHeExk8kpRzFKA4sbxzP")
 ALGORITHM = "HS256"
 
 bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

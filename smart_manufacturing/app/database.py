@@ -1,18 +1,23 @@
 import os
+from typing import Any
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
+
+# Load environment variables from .env
+load_dotenv()
 
 # Load DATABASE_URL from environment variable with fallback
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql://postgres:Yash%401432@localhost:5432/postgres"
+    "postgresql://postgres:postgres@localhost:5432/smart_manufacturing"
 )
 
 # Fix legacy postgres:// schema used by Render/Railway to postgresql://
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
-engine_kwargs = {
+engine_kwargs: dict[str, Any] = {
     "pool_pre_ping": True,
 }
 
