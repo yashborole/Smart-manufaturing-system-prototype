@@ -1,0 +1,10 @@
+[build]
+  base = "smart_manufacturing/frontend"
+  command = "npm ci --include=dev && npm run build"
+  publish = "dist"
+
+# React Router (BrowserRouter) needs every path to serve index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
