@@ -11,27 +11,33 @@ if os.path.exists(_env_path):
 else:
     load_dotenv()
 
-# Load DATABASE_URL from environment variable with fallback
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql://postgres:postgres@localhost:5432/smart_manufacturing"
-)
+# Load DATABASE_URL from environment variable with safe fallback
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    if os.getenv("RENDER"):
+        print("Notice: No DATABASE_URL provided on Render. Falling back to SQLite database.")
+        DATABASE_URL = "sqlite:///./smart_manufacturing.db"
+    else:
+        DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/smart_manufacturing"
 
 # Fix legacy postgres:// schema used by Render/Railway to postgresql://
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
-engine_kwargs: dict[str, Any] = {
-    "pool_pre_ping": True,
-}
+engine_kwargs: dict[str, Any] = {}
 
-if not DATABASE_URL.startswith("sqlite"):
-    engine_kwargs.update({
+if DATABASE_URL.startswith("sqlite"):
+    engine_kwargs = {
+        "connect_args": {"check_same_thread": False}
+    }
+else:
+    engine_kwargs = {
+        "pool_pre_ping": True,
         "pool_size": 20,
         "max_overflow": 20,
         "pool_timeout": 30,
         "pool_recycle": 300,
-    })
+    }
 
 engine = create_engine(DATABASE_URL, **engine_kwargs)
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
