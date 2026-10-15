@@ -1,16 +1,26 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="40" height="40">
-  <defs>
-    <linearGradient id="gearGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0284c7"/>
-      <stop offset="100%" stop-color="#0369a1"/>
-    </linearGradient>
-  </defs>
-  <rect width="40" height="40" rx="8" fill="url(#gearGrad)"/>
-  <!-- Factory / Machine Gear Emblem -->
-  <path d="M 20 12 C 15.58 12 12 15.58 12 20 C 12 24.42 15.58 28 20 28 C 24.42 28 28 24.42 28 20 C 28 15.58 24.42 12 20 12 Z M 20 15 C 22.76 15 25 17.24 25 20 C 25 22.76 22.76 25 20 25 C 17.24 25 15 22.76 15 20 C 15 17.24 17.24 15 20 15 Z" fill="#ffffff"/>
-  <!-- Gear Teeth -->
-  <rect x="18.5" y="8.5" width="3" height="4" rx="1" fill="#ffffff"/>
-  <rect x="18.5" y="27.5" width="3" height="4" rx="1" fill="#ffffff"/>
-  <rect x="8.5" y="18.5" width="4" height="3" rx="1" fill="#ffffff"/>
-  <rect x="27.5" y="18.5" width="4" height="3" rx="1" fill="#ffffff"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" fill="none">
+  <!-- Precision Production Hex Carrier Chassis -->
+  <rect width="48" height="48" rx="8" fill="#090d16" />
+  <rect x="0.75" y="0.75" width="46.5" height="46.5" rx="7.25" stroke="#1e293b" stroke-width="1.5" />
+  
+  <!-- Outer Precision Machined Border Guides -->
+  <line x1="8" y1="12" x2="14" y2="12" stroke="#334155" stroke-width="1.5" stroke-linecap="round" />
+  <line x1="34" y1="12" x2="40" y2="12" stroke="#334155" stroke-width="1.5" stroke-linecap="round" />
+  <line x1="8" y1="36" x2="14" y2="36" stroke="#334155" stroke-width="1.5" stroke-linecap="round" />
+  <line x1="34" y1="36" x2="40" y2="36" stroke="#334155" stroke-width="1.5" stroke-linecap="round" />
+
+  <!-- Industrial Manufacturing Plant Profile -->
+  <!-- Bay 1 with Sawtooth Roofline -->
+  <path d="M 11 35 L 11 23 L 19 18 L 19 35 Z" fill="#0284c7" />
+  <!-- Bay 2 Core Production Tower -->
+  <path d="M 20 35 L 20 15 L 28 11 L 28 35 Z" fill="#38bdf8" />
+  <!-- Bay 3 Assembly Finishing Bay -->
+  <path d="M 29 35 L 29 21 L 37 17 L 37 35 Z" fill="#0284c7" />
+
+  <!-- Heavy Machine Ground Baseline -->
+  <line x1="9" y1="35" x2="39" y2="35" stroke="#cbd5e1" stroke-width="2" stroke-linecap="square" />
+
+  <!-- Connected Plant Operations Telemetry Node -->
+  <circle cx="28" cy="11" r="2.2" fill="#ffffff" />
+  <circle cx="28" cy="11" r="4.2" stroke="#38bdf8" stroke-width="1.2" stroke-dasharray="2 1.5" />
 </svg>

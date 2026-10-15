@@ -1,429 +1,258 @@
 /* ==========================================================================
-   FACTORY OPERATOR DESIGN SYSTEM — SIMPLE, READABLE, CLEAR
-   Built specifically for plant managers and factory machine operators.
-   High contrast, clear text labels, no confusing symbols, intuitive cards.
-   Full Light Mode (Default) + Dark Mode toggle.
+   PLANTOPS MES — INDUSTRIAL ENTERPRISE DESIGN SYSTEM
+   Standardized enterprise styling for smart factories & plant operations.
+   ISA-95 / DIN EN ISO compliant color semantics, 4px/8px rhythmic grid,
+   clean information-dense layout with zero marketing clutter or decorative images.
    ========================================================================== */
 
 :root, [data-theme="light"] {
-  --bg-app: #f4f6f9;
-  --bg-surface: #ffffff;
-  --bg-subtle: #f8fafc;
-  --bg-input: #ffffff;
-  --bg-sidebar: #1e293b;
-  --bg-sidebar-hover: #334155;
-  --bg-sidebar-active: #0ea5e9;
+  /* Surfaces */
+  --bg-app: #f1f5f9;            /* Slate-100 neutral application canvas */
+  --bg-surface: #ffffff;        /* White card / panel surface */
+  --bg-subtle: #f8fafc;         /* Slate-50 data table alternate row */
+  --bg-input: #ffffff;          /* Input field surface */
+  --bg-header: #ffffff;         /* Top navigation header */
+  --bg-sidebar: #0f172a;        /* Slate-900 navigation drawer */
+  --bg-sidebar-hover: #1e293b;  /* Slate-800 item hover */
+  --bg-sidebar-active: #0284c7; /* Sky-600 active navigation item */
+  --bg-modal-overlay: rgba(15, 23, 42, 0.6);
 
-  --border-color: #e2e8f0;
-  --border-subtle: #cbd5e1;
-  --border-focus: #0284c7;
+  /* Borders & Dividers */
+  --border-color: #cbd5e1;       /* Slate-300 standard component border */
+  --border-subtle: #e2e8f0;      /* Slate-200 subtle divider */
+  --border-focus: #0284c7;       /* Industrial blue focus ring */
 
-  --text-main: #0f172a;
-  --text-muted: #64748b;
-  --text-light: #94a3b8;
-  --text-on-dark: #f8fafc;
+  /* Neutral Typography */
+  --text-main: #0f172a;          /* Slate-900 primary text */
+  --text-secondary: #334155;     /* Slate-700 label / body */
+  --text-muted: #64748b;         /* Slate-500 secondary / helper */
+  --text-light: #94a3b8;         /* Slate-400 disabled / placeholder */
+  --text-on-dark: #f8fafc;       /* Off-white text on dark drawer */
 
-  /* Standard Industrial Machine State Colors */
-  --status-running: #16a34a;
-  --status-running-bg: #dcfce7;
+  /* Operational Status Semantics (DIN EN ISO / ISA-88 Compliant) */
+  --status-running: #15803d;     /* Green-700 Active / Machining */
+  --status-running-bg: #dcfce7;  /* Green-100 badge */
   --status-running-border: #86efac;
 
-  --status-idle: #d97706;
-  --status-idle-bg: #fef3c7;
+  --status-idle: #b45309;        /* Amber-700 Idle / Paused / Attention */
+  --status-idle-bg: #fef3c7;     /* Amber-100 badge */
   --status-idle-border: #fcd34d;
 
-  --status-stopped: #dc2626;
-  --status-stopped-bg: #fee2e2;
+  --status-stopped: #b91c1c;     /* Red-700 Stopped / Fault / Critical */
+  --status-stopped-bg: #fee2e2;  /* Red-100 badge */
   --status-stopped-border: #fca5a5;
 
-  --status-scheduled: #7c3aed;
+  --status-scheduled: #6d28d9;   /* Purple-700 Scheduled / Work Order */
   --status-scheduled-bg: #ede9fe;
   --status-scheduled-border: #c4b5fd;
 
-  --primary: #0284c7;
-  --primary-hover: #0369a1;
+  --status-offline: #475569;     /* Slate-600 Offline / Disconnected */
+  --status-offline-bg: #f1f5f9;
+  --status-offline-border: #cbd5e1;
 
-  --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px -1px rgba(0, 0, 0, 0.08);
-  --shadow-hover: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.08);
+  /* Primary Industrial Action */
+  --primary: #0284c7;            /* Precision industrial blue */
+  --primary-hover: #0369a1;
+  --primary-bg: rgba(2, 132, 199, 0.08);
+
+  /* Shadows - Minimal functional depth */
+  --shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+  --shadow-card: 0 1px 3px 0 rgba(15, 23, 42, 0.08), 0 1px 2px -1px rgba(15, 23, 42, 0.06);
+  --shadow-dropdown: 0 4px 6px -1px rgba(15, 23, 42, 0.1), 0 2px 4px -2px rgba(15, 23, 42, 0.06);
+  --shadow-modal: 0 20px 25px -5px rgba(15, 23, 42, 0.25), 0 8px 10px -6px rgba(15, 23, 42, 0.15);
 }
 
 [data-theme="dark"] {
-  --bg-app: #0f172a;
-  --bg-surface: #1e293b;
-  --bg-subtle: #0f172a;
-  --bg-input: #0f172a;
-  --bg-sidebar: #0b1120;
-  --bg-sidebar-hover: #1e293b;
+  /* Surfaces */
+  --bg-app: #0b1120;            /* Dark Navy-950 industrial canvas */
+  --bg-surface: #131d2f;        /* Navy-900 surface */
+  --bg-subtle: #0f172a;         /* Navy-950 table row */
+  --bg-input: #0b1120;          /* Input field */
+  --bg-header: #131d2f;         /* Header */
+  --bg-sidebar: #070b14;        /* Dark drawer */
+  --bg-sidebar-hover: #131d2f;
   --bg-sidebar-active: #0284c7;
+  --bg-modal-overlay: rgba(0, 0, 0, 0.75);
 
-  --border-color: #334155;
-  --border-subtle: #475569;
+  /* Borders & Dividers */
+  --border-color: #1e293b;       /* Slate-800 component border */
+  --border-subtle: #334155;      /* Slate-700 divider */
   --border-focus: #38bdf8;
 
+  /* Neutral Typography */
   --text-main: #f8fafc;
+  --text-secondary: #cbd5e1;
   --text-muted: #94a3b8;
   --text-light: #64748b;
   --text-on-dark: #ffffff;
 
+  /* Operational Status Semantics */
   --status-running: #22c55e;
-  --status-running-bg: rgba(34, 197, 94, 0.15);
+  --status-running-bg: rgba(34, 197, 94, 0.14);
   --status-running-border: rgba(34, 197, 94, 0.4);
 
   --status-idle: #f59e0b;
-  --status-idle-bg: rgba(245, 158, 11, 0.15);
+  --status-idle-bg: rgba(245, 158, 11, 0.14);
   --status-idle-border: rgba(245, 158, 11, 0.4);
 
   --status-stopped: #ef4444;
-  --status-stopped-bg: rgba(239, 68, 68, 0.15);
+  --status-stopped-bg: rgba(239, 68, 68, 0.14);
   --status-stopped-border: rgba(239, 68, 68, 0.4);
 
   --status-scheduled: #a78bfa;
-  --status-scheduled-bg: rgba(167, 139, 250, 0.15);
+  --status-scheduled-bg: rgba(167, 139, 250, 0.14);
   --status-scheduled-border: rgba(167, 139, 250, 0.4);
 
+  --status-offline: #94a3b8;
+  --status-offline-bg: rgba(148, 163, 184, 0.12);
+  --status-offline-border: rgba(148, 163, 184, 0.3);
+
+  /* Primary Industrial Action */
   --primary: #38bdf8;
   --primary-hover: #0ea5e9;
+  --primary-bg: rgba(56, 189, 248, 0.12);
 
+  /* Shadows */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
   --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
-  --shadow-hover: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+  --shadow-dropdown: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+  --shadow-modal: 0 20px 25px -5px rgba(0, 0, 0, 0.7);
 }
 
-/* Base Styles */
+/* Reset & Global Base */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-body {
+html, body {
   background-color: var(--bg-app);
   color: var(--text-main);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  min-height: 100vh;
-  font-size: 14px;
-  line-height: 1.5;
-  transition: background-color 0.2s ease, color 0.2s ease;
-}
-
-/* Common App Shell */
-.app-layout {
-  display: flex;
-  min-height: 100vh;
-}
-
-.app-sidebar {
-  width: 250px;
-  background: var(--bg-sidebar);
-  color: var(--text-on-dark);
-  display: flex;
-  flex-direction: column;
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  z-index: 100;
-  padding: 20px 16px;
-  justify-content: space-between;
-  flex-shrink: 0;
-}
-
-.sidebar-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 20px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-}
-
-.sidebar-brand-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: #ffffff;
-  letter-spacing: 0.5px;
-}
-
-.sidebar-brand-sub {
-  font-size: 11px;
-  color: #94a3b8;
-  font-weight: 500;
-}
-
-.sidebar-node-card {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-}
-
-.sidebar-node-label {
-  font-size: 11px;
-  color: #94a3b8;
-  font-weight: 600;
-  text-transform: uppercase;
-  margin-bottom: 4px;
-}
-
-.sidebar-node-name {
-  font-size: 14px;
-  font-weight: 700;
-  color: #ffffff;
-}
-
-.sidebar-node-btn {
-  margin-top: 8px;
-  width: 100%;
-  padding: 6px 10px;
-  background: rgba(255, 255, 255, 0.1);
-  color: #f1f5f9;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
-.sidebar-node-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.sidebar-nav {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.sidebar-nav-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: 6px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   font-size: 13px;
-  font-weight: 600;
-  color: #cbd5e1;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+/* Tabular figures for telemetry, timers & quantities */
+.font-mono, td.metric, .kpi-value, code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Scrollbar Styling for Workstations */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
   background: transparent;
-  border: none;
-  cursor: pointer;
-  text-align: left;
-  width: 100%;
-  transition: all 0.15s ease;
 }
-.sidebar-nav-item:hover {
-  background: var(--bg-sidebar-hover);
-  color: #ffffff;
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
 }
-.sidebar-nav-item.active {
-  background: var(--bg-sidebar-active);
-  color: #ffffff;
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
 }
 
-.sidebar-profile {
-  padding-top: 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.sidebar-profile-info {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.sidebar-profile-name {
+/* Base Form Inputs */
+input, select, textarea {
+  font-family: inherit;
   font-size: 13px;
-  font-weight: 700;
-  color: #ffffff;
+  color: var(--text-main);
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 6px 10px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 2px var(--primary-bg);
 }
 
-.sidebar-profile-role {
-  font-size: 11px;
-  color: #94a3b8;
-}
-
-.sidebar-logout-btn {
-  width: 100%;
-  padding: 8px 10px;
-  background: rgba(239, 68, 68, 0.15);
-  color: #fca5a5;
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
+/* Buttons */
+.btn {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-}
-.sidebar-logout-btn:hover {
-  background: rgba(239, 68, 68, 0.25);
-  color: #ffffff;
-}
-
-/* Workspace Content */
-.workspace-wrapper {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  overflow-y: auto;
-  min-width: 0;
-  background: var(--bg-app);
-}
-
-.workspace-header {
-  padding: 12px 24px;
-  background: var(--bg-surface);
-  border-bottom: 1px solid var(--border-color);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  position: sticky;
-  top: 0;
-  z-index: 90;
-}
-
-.workspace-header-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.workspace-header-title {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--text-main);
-}
-
-.workspace-header-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.theme-toggle-btn {
   padding: 6px 12px;
-  background: var(--bg-subtle);
-  border: 1px solid var(--border-color);
-  color: var(--text-main);
-  border-radius: 6px;
+  border-radius: 4px;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  border: 1px solid transparent;
+  transition: all 0.12s ease;
+  line-height: 1.25;
+  white-space: nowrap;
 }
-.theme-toggle-btn:hover {
-  border-color: var(--border-subtle);
-}
-
-.status-live-indicator {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--status-running);
-  background: var(--status-running-bg);
-  border: 1px solid var(--status-running-border);
-  padding: 4px 10px;
-  border-radius: 20px;
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-.workspace-content {
-  padding: 24px;
-  max-width: 1400px;
-  width: 100%;
-  margin: 0 auto;
+.btn-primary {
+  background: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--primary-hover);
+  border-color: var(--primary-hover);
 }
 
-/* Cards & Grid */
-.card {
+.btn-secondary {
   background: var(--bg-surface);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  box-shadow: var(--shadow-card);
-  padding: 20px;
-}
-
-.card-title {
-  font-size: 16px;
-  font-weight: 700;
+  border-color: var(--border-color);
   color: var(--text-main);
-  margin-bottom: 4px;
+}
+.btn-secondary:hover:not(:disabled) {
+  background: var(--bg-subtle);
+  border-color: var(--text-muted);
 }
 
-.card-subtitle {
-  font-size: 13px;
-  color: var(--text-muted);
-  margin-bottom: 16px;
+.btn-danger {
+  background: var(--status-stopped);
+  color: #ffffff;
+  border-color: var(--status-stopped);
+}
+.btn-danger:hover:not(:disabled) {
+  filter: brightness(0.9);
 }
 
-.kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 24px;
+.btn-outline-danger {
+  background: transparent;
+  border-color: var(--status-stopped-border);
+  color: var(--status-stopped);
+}
+.btn-outline-danger:hover:not(:disabled) {
+  background: var(--status-stopped-bg);
 }
 
-.kpi-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 16px;
-  box-shadow: var(--shadow-card);
-}
-
-.kpi-title {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 6px;
-}
-
-.kpi-value {
-  font-size: 26px;
-  font-weight: 800;
-  color: var(--text-main);
-  margin-bottom: 4px;
-}
-
-.kpi-status {
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.two-col-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-}
-
-.machine-cards-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
-}
-
-/* Status Badges */
+/* Compact Industrial Status Badges */
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 3px 8px;
-  border-radius: 4px;
+  gap: 5px;
+  padding: 2px 7px;
+  border-radius: 3px;
   font-size: 11px;
   font-weight: 700;
+  letter-spacing: 0.3px;
   text-transform: uppercase;
+  white-space: nowrap;
+}
+.badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .badge-running {
@@ -431,83 +260,93 @@ body {
   color: var(--status-running);
   border: 1px solid var(--status-running-border);
 }
+.badge-running .badge-dot { background: var(--status-running); }
 
-.badge-idle, .badge-maintenance {
+.badge-idle {
   background: var(--status-idle-bg);
   color: var(--status-idle);
   border: 1px solid var(--status-idle-border);
 }
+.badge-idle .badge-dot { background: var(--status-idle); }
 
 .badge-stopped {
   background: var(--status-stopped-bg);
   color: var(--status-stopped);
   border: 1px solid var(--status-stopped-border);
 }
+.badge-stopped .badge-dot { background: var(--status-stopped); }
 
 .badge-scheduled {
   background: var(--status-scheduled-bg);
   color: var(--status-scheduled);
   border: 1px solid var(--status-scheduled-border);
 }
+.badge-scheduled .badge-dot { background: var(--status-scheduled); }
 
-/* Primary and Secondary Buttons */
-.btn {
-  padding: 8px 14px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  border: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  transition: all 0.15s ease;
+.badge-offline {
+  background: var(--status-offline-bg);
+  color: var(--status-offline);
+  border: 1px solid var(--status-offline-border);
 }
+.badge-offline .badge-dot { background: var(--status-offline); }
 
-.btn-primary {
-  background: var(--primary);
-  color: #ffffff;
-}
-.btn-primary:hover {
-  background: var(--primary-hover);
-}
-
-.btn-secondary {
-  background: var(--bg-subtle);
+/* Structured Enterprise Tables */
+.mes-table-container {
+  background: var(--bg-surface);
   border: 1px solid var(--border-color);
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+.mes-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 12px;
+}
+.mes-table th {
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 11px;
+}
+.mes-table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border-subtle);
   color: var(--text-main);
+  vertical-align: middle;
 }
-.btn-secondary:hover {
-  border-color: var(--border-subtle);
+.mes-table tr:last-child td {
+  border-bottom: none;
 }
-
-/* Responsive */
-@media (max-width: 1024px) {
-  .kpi-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .two-col-grid {
-    grid-template-columns: 1fr;
-  }
+.mes-table tr:hover td {
+  background: var(--bg-subtle);
 }
 
-@media (max-width: 768px) {
-  .app-sidebar {
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    transform: translateX(-100%);
-  }
-  .app-sidebar.open {
-    transform: translateX(0);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
-  }
-  .kpi-grid {
-    grid-template-columns: 1fr;
-  }
-  .workspace-content {
-    padding: 16px;
-  }
+/* Card & KPI Container */
+.mes-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  box-shadow: var(--shadow-card);
+  padding: 14px 16px;
+}
+.mes-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.mes-card-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: -0.1px;
+  text-transform: uppercase;
 }

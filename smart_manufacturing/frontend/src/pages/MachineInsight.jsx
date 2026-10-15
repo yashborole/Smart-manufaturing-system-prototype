@@ -1,338 +1,269 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { 
-    ArrowLeft, Activity, Settings, AlertTriangle, Factory, 
-    Layers, Sliders, User, LogOut, Menu, X, CheckCircle2, Clock,
-    Sun, Moon, RefreshCw, Zap, Calendar
+import AppShell from '../components/AppShell';
+import MetricCard from '../components/MetricCard';
+import StatusBadge from '../components/StatusBadge';
+import {
+  ArrowLeft,
+  Activity,
+  AlertTriangle,
+  Clock,
+  CheckCircle2,
+  Calendar,
+  Zap,
+  TrendingUp,
+  Cpu,
+  RotateCcw
 } from 'lucide-react';
 import { API_BASE_URL } from '../api/config';
 
-const MachineInsight = () => {
-    const { machineId } = useParams();
-    const navigate = useNavigate();
-    const { user, selectedPlant, logout, selectPlant, theme, toggleTheme } = useContext(AuthContext);
+/**
+ * Enterprise Production Machine Diagnostics & Insight Screen
+ * Includes:
+ * - Machine identity, category, and operating state
+ * - 7-day average efficiency, today's output vs target, and cumulative production
+ * - Daily production logs table with met-target badges and efficiency rates
+ * - Direct transition to operator terminal
+ */
+export default function MachineInsight() {
+  const { machineId } = useParams();
+  const navigate = useNavigate();
+  const { selectedPlant } = useContext(AuthContext);
 
-    const [machine, setMachine] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [error, setError] = useState('');
+  const [machine, setMachine] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [lastUpdated, setLastUpdated] = useState(new Date());
 
-    const handleLogout = () => {
-        logout();
-        navigate('/login');
-    };
-
-    const handleChangePlant = () => {
-        selectPlant(null);
-        navigate('/select-plant');
-    };
-
-    const handleBack = () => {
-        navigate('/dashboard', { state: { activeTab: 'insights' } });
-    };
-
-    const fetchMachineDetails = async () => {
-        setLoading(true);
-        setError('');
-        try {
-            const res = await fetch(`${API_BASE_URL}/plants/machines/${machineId}`);
-            if (!res.ok) {
-                if (res.status === 404) {
-                    throw new Error('Machine not found');
-                }
-                throw new Error('Failed to load machine data');
-            }
-            const data = await res.json();
-            setMachine(data);
-        } catch (err) {
-            console.error(err);
-            setError(err.message || 'Error occurred while loading machine details');
-        } finally {
-            setLoading(false);
+  const fetchMachineDetails = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const res = await fetch(`${API_BASE_URL}/plants/machines/${machineId}`);
+      if (!res.ok) {
+        if (res.status === 404) {
+          throw new Error('Machine not found in plant registry.');
         }
-    };
-
-    useEffect(() => {
-        if (machineId) {
-            fetchMachineDetails();
-        }
-    }, [machineId]);
-
-    if (!selectedPlant) {
-        return null;
+        throw new Error('Failed to load machine telemetry data.');
+      }
+      const data = await res.json();
+      setMachine(data);
+      setLastUpdated(new Date());
+    } catch (err) {
+      console.error(err);
+      setError(err.message || 'Error occurred while loading machine telemetry.');
+    } finally {
+      setLoading(false);
     }
+  };
 
-    return (
-        <div className="app-layout">
-            {/* Mobile Sidebar Overlay */}
-            <div 
-                className={`sidebar-overlay ${sidebarOpen ? 'open' : ''}`} 
-                onClick={() => setSidebarOpen(false)} 
-                style={{
-                    display: sidebarOpen ? 'block' : 'none',
-                    position: 'fixed',
-                    inset: 0,
-                    background: 'rgba(0,0,0,0.5)',
-                    zIndex: 95
-                }}
-            />
+  useEffect(() => {
+    if (machineId) {
+      fetchMachineDetails();
+    }
+  }, [machineId]);
 
-            {/* Left Sidebar */}
-            <aside className={`app-sidebar ${sidebarOpen ? 'open' : ''}`}>
-                <div>
-                    <div className="sidebar-brand">
-                        <img 
-                            src="/factory-logo.svg" 
-                            alt="Factory Logo" 
-                            style={{ width: 34, height: 34, borderRadius: 6, flexShrink: 0 }} 
-                        />
-                        <div>
-                            <div className="sidebar-brand-title">Factory MES</div>
-                            <div className="sidebar-brand-sub">Manufacturing System</div>
-                        </div>
-                    </div>
+  if (!selectedPlant) {
+    return null;
+  }
 
-                    <div className="sidebar-node-card">
-                        <div className="sidebar-node-label">Current Factory</div>
-                        <div className="sidebar-node-name">{selectedPlant.name}</div>
-                        <button onClick={handleChangePlant} className="sidebar-node-btn">
-                            <Layers size={13} />
-                            Change Factory
-                        </button>
-                    </div>
+  const handleBack = () => {
+    navigate('/dashboard', { state: { activeTab: 'insights' } });
+  };
 
-                    <nav className="sidebar-nav">
-                        <button
-                            onClick={() => navigate('/dashboard')}
-                            className="sidebar-nav-item"
-                        >
-                            <Activity size={16} />
-                            Plant Overview
-                        </button>
+  return (
+    <AppShell
+      pageTitle={machine ? `${machine.name} Diagnostics` : 'Machine Diagnostics'}
+      breadcrumbs={['Machines', machine ? machine.name : `#${machineId}`]}
+      lastUpdated={lastUpdated}
+      telemetryStatus="online"
+      onRefresh={fetchMachineDetails}
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        {/* Back and Direct Actions Bar */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          borderBottom: '1px solid var(--border-color)',
+          paddingBottom: '10px'
+        }}>
+          <button
+            onClick={handleBack}
+            className="btn btn-secondary"
+            style={{ fontSize: '12px' }}
+          >
+            <ArrowLeft size={13} />
+            Back to Machine Fleet
+          </button>
 
-                        <button
-                            onClick={() => navigate('/dashboard', { state: { activeTab: 'insights' } })}
-                            className="sidebar-nav-item active"
-                        >
-                            <Sliders size={16} />
-                            Machine Status
-                        </button>
-
-                        <button
-                            onClick={() => navigate('/scheduling')}
-                            className="sidebar-nav-item"
-                            style={{ borderTop: '1px solid rgba(255,255,255,0.1)', marginTop: '8px', paddingTop: '12px' }}
-                        >
-                            <Calendar size={16} color="#c4b5fd" />
-                            Job Scheduling
-                        </button>
-
-                        <button
-                            onClick={() => navigate('/kiosk')}
-                            className="sidebar-nav-item"
-                        >
-                            <Zap size={16} color="#38bdf8" />
-                            Machine Kiosk
-                        </button>
-                    </nav>
-                </div>
-
-                <div className="sidebar-profile">
-                    <div className="sidebar-profile-info">
-                        <div style={{
-                            width: '32px',
-                            height: '32px',
-                            borderRadius: '50%',
-                            background: 'rgba(255,255,255,0.15)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: '#ffffff'
-                        }}>
-                            <User size={16} />
-                        </div>
-                        <div>
-                            <div className="sidebar-profile-name">{user?.name}</div>
-                            <div className="sidebar-profile-role">Operator</div>
-                        </div>
-                    </div>
-                    <button onClick={handleLogout} className="sidebar-logout-btn">
-                        <LogOut size={13} />
-                        Log Out
-                    </button>
-                </div>
-            </aside>
-
-            {/* Right Workspace */}
-            <div className="workspace-wrapper">
-                
-                <header className="workspace-header">
-                    <div className="workspace-header-left">
-                        <button 
-                            onClick={handleBack}
-                            className="btn btn-secondary"
-                            style={{ padding: '6px 12px' }}
-                        >
-                            <ArrowLeft size={14} />
-                            Back to Machines
-                        </button>
-                        <div className="workspace-header-title">
-                            {machine ? `${machine.name} Details` : 'Machine Diagnostics'}
-                        </div>
-                    </div>
-
-                    <div className="workspace-header-right">
-                        <button 
-                            onClick={toggleTheme}
-                            className="theme-toggle-btn"
-                        >
-                            {theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
-                            <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
-                        </button>
-                    </div>
-                </header>
-
-                <main className="workspace-content">
-                    {error && (
-                        <div style={{ 
-                            background: 'var(--status-stopped-bg)', 
-                            border: '1px solid var(--status-stopped-border)',
-                            color: 'var(--status-stopped)', 
-                            padding: '10px 14px', 
-                            borderRadius: '6px', 
-                            marginBottom: '16px', 
-                            fontSize: '13px'
-                        }}>
-                            {error}
-                        </div>
-                    )}
-
-                    {loading ? (
-                        <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>
-                            Loading machine details...
-                        </div>
-                    ) : machine ? (
-                        <>
-                            {/* Top Info Banner */}
-                            <div className="card" style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <div>
-                                    <h1 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--text-main)', margin: 0 }}>
-                                        {machine.name}
-                                    </h1>
-                                    <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                                        Machine Type: <strong>{machine.machine_type || 'General Equipment'}</strong> • Plant: <strong>{machine.plant_name}</strong>
-                                    </div>
-                                </div>
-                                <div>
-                                    <span className={`badge ${machine.status?.toLowerCase() === 'running' ? 'badge-running' : machine.status?.toLowerCase() === 'maintenance' ? 'badge-maintenance' : 'badge-stopped'}`} style={{ fontSize: '13px', padding: '6px 12px' }}>
-                                        Status: {machine.status}
-                                    </span>
-                                </div>
-                            </div>
-
-                            {/* Clean KPI Cards */}
-                            <div className="kpi-grid">
-                                <div className="kpi-card">
-                                    <div className="kpi-title">Average Efficiency (7 Days)</div>
-                                    <div className="kpi-value" style={{ color: (machine.avg_efficiency_7d || 0) >= 85 ? 'var(--status-running)' : 'var(--status-idle)' }}>
-                                        {machine.avg_efficiency_7d !== undefined ? `${machine.avg_efficiency_7d}%` : '—'}
-                                    </div>
-                                    <div className="kpi-status" style={{ color: (machine.avg_efficiency_7d || 0) >= 85 ? 'var(--status-running)' : 'var(--status-idle)' }}>
-                                        {(machine.avg_efficiency_7d || 0) >= 85 ? 'Normal' : 'Attention'}
-                                    </div>
-                                </div>
-
-                                <div className="kpi-card">
-                                    <div className="kpi-title">Today's Production</div>
-                                    <div className="kpi-value" style={{ color: 'var(--primary)' }}>
-                                        {machine.latest_production 
-                                            ? `${machine.latest_production.produced || 0} / ${machine.latest_production.target || 0}` 
-                                            : '—'}
-                                    </div>
-                                    <div className="kpi-status" style={{ color: 'var(--text-muted)' }}>
-                                        {machine.latest_production ? `${machine.latest_production.efficiency || 0}% efficiency` : 'No production today'}
-                                    </div>
-                                </div>
-
-                                <div className="kpi-card">
-                                    <div className="kpi-title">Total 7-Day Output</div>
-                                    <div className="kpi-value" style={{ color: 'var(--text-main)' }}>
-                                        {machine.total_produced_7d !== undefined ? machine.total_produced_7d.toLocaleString() : '—'}
-                                    </div>
-                                    <div className="kpi-status" style={{ color: 'var(--text-muted)' }}>
-                                        Units logged in database
-                                    </div>
-                                </div>
-
-                                <div className="kpi-card">
-                                    <div className="kpi-title">Machine ID</div>
-                                    <div className="kpi-value" style={{ color: 'var(--text-main)' }}>
-                                        #{machine.id}
-                                    </div>
-                                    <div className="kpi-status" style={{ color: 'var(--status-running)' }}>
-                                        Database Node #{machine.id}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Daily Production Table (Simple and very clear for operators) */}
-                            <div className="card">
-                                <h2 className="card-title">Daily Production History (Last 7 Days)</h2>
-                                <p className="card-subtitle">List of daily parts produced and target numbers</p>
-
-                                {machine.history.length === 0 ? (
-                                    <div style={{ textAlign: 'center', padding: '30px', color: 'var(--text-muted)' }}>
-                                        No production records found for the past 7 days.
-                                    </div>
-                                ) : (
-                                    <div style={{ overflowX: 'auto' }}>
-                                        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
-                                            <thead>
-                                                <tr style={{ borderBottom: '2px solid var(--border-color)', color: 'var(--text-muted)' }}>
-                                                    <th style={{ padding: '10px 12px' }}>Day & Date</th>
-                                                    <th style={{ padding: '10px 12px' }}>Parts Produced</th>
-                                                    <th style={{ padding: '10px 12px' }}>Target Goal</th>
-                                                    <th style={{ padding: '10px 12px' }}>Efficiency</th>
-                                                    <th style={{ padding: '10px 12px' }}>Status</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {machine.history.map((day, idx) => {
-                                                    const metTarget = day.produced >= day.target;
-                                                    return (
-                                                        <tr key={idx} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                                                            <td style={{ padding: '12px', fontWeight: '600', color: 'var(--text-main)' }}>
-                                                                {day.day_name}, {day.date}
-                                                            </td>
-                                                            <td style={{ padding: '12px', fontWeight: '700', color: 'var(--text-main)' }}>
-                                                                {day.produced.toLocaleString()} parts
-                                                            </td>
-                                                            <td style={{ padding: '12px', color: 'var(--text-muted)' }}>
-                                                                {day.target.toLocaleString()} parts
-                                                            </td>
-                                                            <td style={{ padding: '12px', fontWeight: '700', color: day.efficiency >= 85 ? 'var(--status-running)' : 'var(--status-idle)' }}>
-                                                                {day.efficiency}%
-                                                            </td>
-                                                            <td style={{ padding: '12px' }}>
-                                                                <span className={`badge ${metTarget ? 'badge-running' : 'badge-idle'}`}>
-                                                                    {metTarget ? 'Target Achieved' : 'Below Target'}
-                                                                </span>
-                                                            </td>
-                                                        </tr>
-                                                    );
-                                                })}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                )}
-                            </div>
-                        </>
-                    ) : null}
-                </main>
-            </div>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              onClick={() => navigate('/kiosk')}
+              className="btn btn-primary"
+              style={{ fontSize: '12px' }}
+            >
+              <Zap size={13} />
+              Open In Machine Terminal
+            </button>
+          </div>
         </div>
-    );
-};
 
-export default MachineInsight;
+        {error && (
+          <div style={{
+            background: 'var(--status-stopped-bg)',
+            border: '1px solid var(--status-stopped-border)',
+            color: 'var(--status-stopped)',
+            padding: '10px 12px',
+            borderRadius: '4px',
+            fontSize: '12px',
+            fontWeight: '600'
+          }}>
+            {error}
+          </div>
+        )}
+
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--primary)', margin: '0 auto 12px', animation: 'ping 1s cubic-bezier(0, 0, 0.2, 1) infinite' }} />
+            <div style={{ fontSize: '12px', fontWeight: '600' }}>Querying Station Diagnostics...</div>
+          </div>
+        ) : machine ? (
+          <>
+            {/* Top Identity Banner */}
+            <div className="mes-card" style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '16px 20px'
+            }}>
+              <div>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: '700' }}>
+                  EQUIPMENT IDENTIFIER: NODE-M{String(machine.id).padStart(3, '0')}
+                </div>
+                <h1 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--text-main)', margin: '2px 0 0 0', letterSpacing: '-0.2px' }}>
+                  {machine.name}
+                </h1>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                  Classification: <strong>{machine.machine_type || 'Industrial Machining Workstation'}</strong> • Facility: <strong>{machine.plant_name}</strong>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <StatusBadge status={machine.status} />
+              </div>
+            </div>
+
+            {/* KPI Metrics Strip */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+              gap: '12px'
+            }}>
+              <MetricCard
+                title="7-Day Rolling Efficiency"
+                value={`${machine.avg_efficiency_7d || 0}%`}
+                subvalue={(machine.avg_efficiency_7d || 0) >= 85 ? 'Operating at optimal speed' : 'Below nominal line speed'}
+                status={(machine.avg_efficiency_7d || 0) >= 85 ? 'positive' : 'warning'}
+                indicator={(machine.avg_efficiency_7d || 0) >= 85 ? 'Optimal' : 'Needs Check'}
+              />
+
+              <MetricCard
+                title="Current Shift Output"
+                value={machine.latest_production ? `${machine.latest_production.produced || 0} / ${machine.latest_production.target || 0}` : '0 / 0'}
+                subvalue={machine.latest_production ? `${machine.latest_production.efficiency || 0}% target efficiency` : 'No work order active today'}
+                status="positive"
+                indicator="Units Logged"
+              />
+
+              <MetricCard
+                title="Cumulative 7-Day Output"
+                value={machine.total_produced_7d !== undefined ? machine.total_produced_7d.toLocaleString() : '—'}
+                subvalue="Verified parts produced"
+                status="neutral"
+                indicator="Total Quantity"
+              />
+
+              <MetricCard
+                title="Controller State"
+                value={machine.status ? machine.status.toUpperCase() : 'UNKNOWN'}
+                subvalue={`SCADA Bus Node #${machine.id}`}
+                status={machine.status === 'Running' ? 'positive' : (machine.status === 'Idle' ? 'warning' : 'negative')}
+                indicator="PLC Polling Active"
+              />
+            </div>
+
+            {/* Daily Production Journal Table */}
+            <div className="mes-table-container">
+              <div style={{
+                padding: '10px 14px',
+                borderBottom: '1px solid var(--border-color)',
+                background: 'var(--bg-surface)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}>
+                <div>
+                  <span className="mes-card-title">Daily Shift Production Journal</span>
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted)', marginLeft: '8px' }}>
+                    (Historical output and efficiency metrics)
+                  </span>
+                </div>
+              </div>
+
+              {!machine.history || machine.history.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '30px', color: 'var(--text-muted)', fontSize: '12px' }}>
+                  No historical shift records currently stored for this machine node.
+                </div>
+              ) : (
+                <div style={{ overflowX: 'auto' }}>
+                  <table className="mes-table">
+                    <thead>
+                      <tr>
+                        <th>Date & Shift</th>
+                        <th>Actual Production</th>
+                        <th>Scheduled Target</th>
+                        <th>Efficiency</th>
+                        <th>Target Compliance</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {machine.history.map((day, idx) => {
+                        const metTarget = day.produced >= day.target;
+                        return (
+                          <tr key={idx}>
+                            <td style={{ fontWeight: '700', color: 'var(--text-main)' }}>
+                              {day.day_name}, {day.date}
+                            </td>
+                            <td className="metric">
+                              <strong>{day.produced.toLocaleString()}</strong> units
+                            </td>
+                            <td className="metric" style={{ color: 'var(--text-muted)' }}>
+                              {day.target.toLocaleString()} units
+                            </td>
+                            <td className="metric" style={{
+                              fontWeight: '700',
+                              color: day.efficiency >= 85 ? 'var(--status-running)' : 'var(--status-idle)'
+                            }}>
+                              {day.efficiency}%
+                            </td>
+                            <td>
+                              <span className={`badge ${metTarget ? 'badge-running' : 'badge-idle'}`} style={{ fontSize: '10px' }}>
+                                {metTarget ? 'TARGET MET' : 'BELOW TARGET'}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </>
+        ) : null}
+      </div>
+    </AppShell>
+  );
+}

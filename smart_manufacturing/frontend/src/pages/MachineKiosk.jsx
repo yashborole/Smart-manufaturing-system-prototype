@@ -1,103 +1,38 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import AppShell from '../components/AppShell';
+import StatusBadge from '../components/StatusBadge';
 import {
-  ArrowLeft, Play, Pause, Square, AlertTriangle, CheckCircle2,
-  Clock, Plus, X, Zap, Activity,
-  Package, List, RefreshCw, Loader2, Moon, Sun, Gauge,
-  Calendar, CalendarClock, RotateCcw, Timer
+  Play,
+  Pause,
+  Square,
+  AlertTriangle,
+  CheckCircle2,
+  Clock,
+  Plus,
+  X,
+  Package,
+  CalendarClock,
+  RotateCcw,
+  Activity,
+  Layers,
+  ChevronRight,
+  Cpu,
+  RefreshCw,
+  Sliders,
+  Check,
+  AlertCircle
 } from 'lucide-react';
 import { API_BASE_URL } from '../api/config';
 
 const API = API_BASE_URL;
 
-const STATUS_CONFIG = {
-  Running:  { color: '#22c55e', bg: 'rgba(34,197,94,0.12)',  border: 'rgba(34,197,94,0.4)',  label: 'RUNNING',  dot: '#22c55e' },
-  Idle:     { color: '#f59e0b', bg: 'rgba(245,158,11,0.12)', border: 'rgba(245,158,11,0.4)', label: 'IDLE',     dot: '#f59e0b' },
-  Stopped:  { color: '#ef4444', bg: 'rgba(239,68,68,0.12)',  border: 'rgba(239,68,68,0.4)',  label: 'STOPPED',  dot: '#ef4444' },
-  Down:     { color: '#6b7280', bg: 'rgba(107,114,128,0.12)',border: 'rgba(107,114,128,0.4)',label: 'DOWN',     dot: '#6b7280' },
-  Maintenance: { color: '#a78bfa', bg: 'rgba(167,139,250,0.12)', border: 'rgba(167,139,250,0.4)', label: 'MAINT', dot: '#a78bfa' },
-};
-
 const PRIORITY_CONFIG = {
-  Urgent: { color: '#ef4444', bg: 'rgba(239,68,68,0.15)' },
-  High:   { color: '#f97316', bg: 'rgba(249,115,22,0.15)' },
-  Normal: { color: '#3b82f6', bg: 'rgba(59,130,246,0.15)' },
-  Low:    { color: '#6b7280', bg: 'rgba(107,114,128,0.15)' },
-};
-
-const JOB_STATUS_COLOR = {
-  Pending:   '#f59e0b',
-  Scheduled: '#8b5cf6',
-  Running:   '#22c55e',
-  Completed: '#3b82f6',
-  Cancelled: '#6b7280',
-};
-
-// ─── Theme Palettes ────────────────────────────────────────────────────────────
-const THEMES = {
-  dark: {
-    pageBg:        '#0a0b0f',
-    headerBg:      'rgba(255,255,255,0.03)',
-    headerBorder:  'rgba(255,255,255,0.07)',
-    panelBorder:   'rgba(255,255,255,0.06)',
-    cardBg:        'rgba(255,255,255,0.03)',
-    cardBgHover:   'rgba(255,255,255,0.06)',
-    panelHeaderBg: 'rgba(255,255,255,0.02)',
-    inputBg:       'rgba(255,255,255,0.05)',
-    inputBorder:   'rgba(255,255,255,0.1)',
-    modalBg:       '#13151c',
-    modalBorder:   'rgba(255,255,255,0.1)',
-    logItemBorder: 'rgba(255,255,255,0.04)',
-    text:          '#e5e7eb',
-    textMuted:     '#9ca3af',
-    textFaint:     '#4b5563',
-    textStrong:    '#f1f5f9',
-    textPanel:     '#d1d5db',
-    btnBorder:     'rgba(255,255,255,0.1)',
-    btnColor:      '#9ca3af',
-    timerBg:       'rgba(0,0,0,0.2)',
-    jobBoxBg:      'rgba(0,0,0,0.2)',
-    progressBg:    'rgba(255,255,255,0.08)',
-    addFormBg:     'rgba(99,102,241,0.06)',
-    addFormBorder: 'rgba(99,102,241,0.2)',
-    accent:        '#6366f1',
-    accentText:    '#818cf8',
-    accentBg:      'rgba(99,102,241,0.15)',
-    accentBorder:  'rgba(99,102,241,0.3)',
-    toggleIcon:    '#9ca3af',
-  },
-  light: {
-    pageBg:        '#f1f5f9',
-    headerBg:      'rgba(255,255,255,0.85)',
-    headerBorder:  'rgba(0,0,0,0.08)',
-    panelBorder:   'rgba(0,0,0,0.08)',
-    cardBg:        '#ffffff',
-    cardBgHover:   '#f8fafc',
-    panelHeaderBg: 'rgba(255,255,255,0.9)',
-    inputBg:       '#ffffff',
-    inputBorder:   'rgba(0,0,0,0.15)',
-    modalBg:       '#ffffff',
-    modalBorder:   'rgba(0,0,0,0.12)',
-    logItemBorder: 'rgba(0,0,0,0.06)',
-    text:          '#1e293b',
-    textMuted:     '#64748b',
-    textFaint:     '#94a3b8',
-    textStrong:    '#0f172a',
-    textPanel:     '#334155',
-    btnBorder:     'rgba(0,0,0,0.15)',
-    btnColor:      '#64748b',
-    timerBg:       'rgba(0,0,0,0.04)',
-    jobBoxBg:      'rgba(0,0,0,0.03)',
-    progressBg:    'rgba(0,0,0,0.08)',
-    addFormBg:     'rgba(99,102,241,0.05)',
-    addFormBorder: 'rgba(99,102,241,0.25)',
-    accent:        '#6366f1',
-    accentText:    '#4f46e5',
-    accentBg:      'rgba(99,102,241,0.1)',
-    accentBorder:  'rgba(99,102,241,0.35)',
-    toggleIcon:    '#4f46e5',
-  },
+  Urgent: { color: 'var(--status-stopped)', bg: 'var(--status-stopped-bg)' },
+  High:   { color: 'var(--status-idle)',    bg: 'var(--status-idle-bg)' },
+  Normal: { color: 'var(--primary)',        bg: 'var(--primary-bg)' },
+  Low:    { color: 'var(--text-muted)',     bg: 'var(--bg-subtle)' },
 };
 
 function useTimer(running) {
@@ -118,41 +53,42 @@ function useTimer(running) {
   return `${h}:${m}:${s}`;
 }
 
+/**
+ * Enterprise Production Machine Terminal & Industrial Kiosk
+ * Designed for practical operator workstations on factory floors.
+ * 3-Column Industrial Layout:
+ * - Left: Fleet Station Directory & Status Filter
+ * - Center: Selected Workstation Console, PLC Controller Controls, Part Counter, Simulation Banner & Event Journal
+ * - Right: Station Work Order Queue (Active, Scheduled, Pending, & Add Work Order)
+ */
 export default function MachineKiosk() {
-  const { selectedPlant, theme, toggleTheme } = useContext(AuthContext);
+  const { selectedPlant } = useContext(AuthContext);
   const navigate = useNavigate();
-
-  // ── Theme ────────────────────────────────────────────────────────────────────
-  const isDark = theme === 'dark';
-  const T = isDark ? THEMES.dark : THEMES.light;
 
   const [machines, setMachines] = useState([]);
   const [selectedMachine, setSelectedMachine] = useState(null);
   const [jobs, setJobs] = useState([]);
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [jobsLoading, setJobsLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [toast, setToast] = useState(null);
+  const [lastUpdated, setLastUpdated] = useState(new Date());
+
+  // Modal & form states
   const [showAddJob, setShowAddJob] = useState(false);
   const [showComplete, setShowComplete] = useState(false);
   const [unitsInput, setUnitsInput] = useState('');
-  const [activeJobId, setActiveJobId] = useState(null);
-
-  // ── Scheduling State ─────────────────────────────────────────────────────────
-  const [scheduleModalJob, setScheduleModalJob] = useState(null);
-  const [scheduleTime, setScheduleTime] = useState('');
-  const [scheduleDuration, setScheduleDuration] = useState('60');
-
   const [newJob, setNewJob] = useState({
     title: '', part_name: '', target_qty: '', priority: 'Normal',
     is_scheduled: false, scheduled_start_at: '', estimated_duration_min: '60'
   });
 
-  // ── Cycle Production Simulation State ──────────────────────────────────────
-  const CYCLE_DURATION = 3.0; // 3.0 seconds per part cycle
+  const [scheduleModalJob, setScheduleModalJob] = useState(null);
+  const [scheduleTime, setScheduleTime] = useState('');
+  const [scheduleDuration, setScheduleDuration] = useState('60');
+
+  // Simulation controls
   const [autoSimulate, setAutoSimulate] = useState(true);
-  const [cycleElapsed, setCycleElapsed] = useState(0);
 
   const isRunning = selectedMachine?.status === 'Running';
   const timer = useTimer(isRunning);
@@ -172,31 +108,28 @@ export default function MachineKiosk() {
         setMachines(data);
         setSelectedMachine(prev => {
           if (!prev) {
-            // Auto-select first running machine, or first machine
             return data.find(m => m.status === 'Running') || data[0];
           }
           const updated = data.find(m => m.id === prev.id);
           return updated || prev;
         });
       }
+      setLastUpdated(new Date());
     } catch (e) {
-      console.error(e);
+      console.error('Error querying machines:', e);
     } finally {
       setLoading(false);
     }
   };
 
   const fetchJobs = async (machineId, silent = false) => {
-    if (!silent) setJobsLoading(true);
     try {
       const res = await fetch(`${API}/kiosk/jobs/${machineId}`);
       if (!res.ok) return;
       const data = await res.json();
       if (Array.isArray(data)) setJobs(data);
     } catch (e) {
-      console.error(e);
-    } finally {
-      if (!silent) setJobsLoading(false);
+      console.error('Error querying jobs:', e);
     }
   };
 
@@ -207,7 +140,7 @@ export default function MachineKiosk() {
       const data = await res.json();
       if (Array.isArray(data)) setLogs(data);
     } catch (e) {
-      console.error(e);
+      console.error('Error querying machine logs:', e);
     }
   };
 
@@ -243,9 +176,8 @@ export default function MachineKiosk() {
     try {
       const res = await fetch(`${API}/kiosk/jobs/${jobId}/run`, { method: 'POST' });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || 'Failed');
-      showToast(data.message, 'success');
-      setActiveJobId(jobId);
+      if (!res.ok) throw new Error(data.detail || 'Target machine unavailable');
+      showToast(data.message || 'Work order started on machine controller', 'success');
       await fetchMachines();
       await fetchJobs(selectedMachine.id);
       await fetchLogs(selectedMachine.id);
@@ -258,40 +190,27 @@ export default function MachineKiosk() {
 
   const handleCompleteJob = async () => {
     const units = parseInt(unitsInput);
-    if (isNaN(units) || units < 0) { showToast('Enter valid units produced', 'error'); return; }
+    if (isNaN(units) || units < 0) {
+      showToast('Enter valid completed pieces', 'error');
+      return;
+    }
     setActionLoading(true);
     try {
       const runningJob = jobs.find(j => j.status === 'Running');
-      if (!runningJob) { showToast('No running job found', 'error'); return; }
+      if (!runningJob) {
+        showToast('No active job found on station', 'error');
+        return;
+      }
       const res = await fetch(`${API}/kiosk/jobs/${runningJob.id}/complete`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ units_produced: units }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || 'Failed');
-      showToast(`Job completed! OEE: ${data.oee}%`, 'success');
+      if (!res.ok) throw new Error(data.detail || 'Failed to complete job');
+      showToast(`Work order completed. Logged OEE: ${data.oee}%`, 'success');
       setShowComplete(false);
       setUnitsInput('');
-      setActiveJobId(null);
-      await fetchMachines();
-      await fetchJobs(selectedMachine.id);
-      await fetchLogs(selectedMachine.id);
-    } catch (e) {
-      showToast(e.message, 'error');
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleCancelJob = async (jobId) => {
-    setActionLoading(true);
-    try {
-      const res = await fetch(`${API}/kiosk/jobs/${jobId}/cancel`, { method: 'POST' });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || 'Failed');
-      showToast(data.message, 'success');
-      setActiveJobId(null);
       await fetchMachines();
       await fetchJobs(selectedMachine.id);
       await fetchLogs(selectedMachine.id);
@@ -311,8 +230,8 @@ export default function MachineKiosk() {
         body: JSON.stringify({ status }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || 'Failed');
-      showToast(data.message, 'success');
+      if (!res.ok) throw new Error(data.detail || 'Failed to update machine state');
+      showToast(data.message || `Station state switched to ${status}`, 'success');
       await fetchMachines();
       await fetchLogs(selectedMachine.id);
     } catch (e) {
@@ -325,13 +244,14 @@ export default function MachineKiosk() {
   const handleAddJob = async (e) => {
     e.preventDefault();
     if (!newJob.title || !newJob.part_name || !newJob.target_qty) {
-      showToast('Fill in all fields', 'error'); return;
+      showToast('Fill in required fields', 'error');
+      return;
     }
     setActionLoading(true);
     try {
       const payload = {
-        title: newJob.title,
-        part_name: newJob.part_name,
+        title: newJob.title.trim(),
+        part_name: newJob.part_name.trim(),
         target_qty: parseInt(newJob.target_qty),
         priority: newJob.priority,
         machine_id: selectedMachine.id,
@@ -349,8 +269,8 @@ export default function MachineKiosk() {
         body: JSON.stringify(payload),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || 'Failed');
-      showToast(newJob.is_scheduled ? 'Job scheduled successfully!' : 'Job added to queue!', 'success');
+      if (!res.ok) throw new Error(data.detail || 'Failed to add work order');
+      showToast('Work order added to station queue!', 'success');
       setNewJob({
         title: '', part_name: '', target_qty: '', priority: 'Normal',
         is_scheduled: false, scheduled_start_at: '', estimated_duration_min: '60'
@@ -360,54 +280,6 @@ export default function MachineKiosk() {
       await fetchMachines();
     } catch (e) {
       showToast(e.message, 'error');
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleScheduleJob = async (e) => {
-    e.preventDefault();
-    if (!scheduleModalJob || !scheduleTime) {
-      showToast('Please select a schedule date & time', 'error');
-      return;
-    }
-    setActionLoading(true);
-    try {
-      const res = await fetch(`${API}/kiosk/jobs/${scheduleModalJob.id}/schedule`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          scheduled_start_at: new Date(scheduleTime).toISOString(),
-          estimated_duration_min: parseInt(scheduleDuration) || 60,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || 'Failed to schedule job');
-      showToast(`Job '${scheduleModalJob.title}' scheduled!`, 'success');
-      setScheduleModalJob(null);
-      setScheduleTime('');
-      await fetchJobs(selectedMachine.id);
-      await fetchMachines();
-    } catch (err) {
-      showToast(err.message, 'error');
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleUnscheduleJob = async (jobId) => {
-    setActionLoading(true);
-    try {
-      const res = await fetch(`${API}/kiosk/jobs/${jobId}/unschedule`, {
-        method: 'POST',
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || 'Failed to unschedule job');
-      showToast('Job returned to Pending queue', 'info');
-      await fetchJobs(selectedMachine.id);
-      await fetchMachines();
-    } catch (err) {
-      showToast(err.message, 'error');
     } finally {
       setActionLoading(false);
     }
@@ -427,29 +299,21 @@ export default function MachineKiosk() {
 
   const scheduledJobs = jobs.filter(j => j.status === 'Scheduled');
   const pendingJobs = jobs.filter(j => j.status === 'Pending');
-  const historyJobs = jobs.filter(j => ['Completed', 'Cancelled'].includes(j.status));
 
   const currentProduced = runningJob ? (runningJob.units_produced || 0) : 0;
   const currentTarget = runningJob ? (runningJob.target_qty || 1) : 1;
-  const progress = runningJob
-    ? Math.min(100, Math.round((currentProduced / currentTarget) * 100))
-    : 0;
+  const progressPct = runningJob ? Math.min(100, Math.round((currentProduced / currentTarget) * 100)) : 0;
 
-  // Keep latest refs to prevent stale closures during the cycle interval
+  // Ref tracking for automated pulse simulation
   const runningJobRef = useRef(runningJob);
-  useEffect(() => {
-    runningJobRef.current = runningJob;
-  }, [runningJob]);
+  useEffect(() => { runningJobRef.current = runningJob; }, [runningJob]);
 
   const selectedMachineRef = useRef(selectedMachine);
-  useEffect(() => {
-    selectedMachineRef.current = selectedMachine;
-  }, [selectedMachine]);
+  useEffect(() => { selectedMachineRef.current = selectedMachine; }, [selectedMachine]);
 
   const isProducingRef = useRef(false);
 
-  // ── Produce Unit Handler (Manual or Simulated Pulse) ──────────────────────
-  const handleProduce = async (count = 1) => {
+  const handleProduceUnit = async (count = 1) => {
     const job = runningJobRef.current;
     if (!job || isProducingRef.current) return;
     isProducingRef.current = true;
@@ -458,1113 +322,605 @@ export default function MachineKiosk() {
     const target = job.target_qty;
     const nextUnits = Math.min(target, (job.units_produced || 0) + addCount);
 
-    // Optimistically update jobs state immediately
-    setJobs(prevJobs => prevJobs.map(j => {
-      if (j.id === job.id) {
-        return { ...j, units_produced: nextUnits };
-      }
-      return j;
-    }));
-
-    // Optimistically update machines list count
-    setMachines(prevMachines => prevMachines.map(m => {
-      if (m.id === selectedMachineRef.current?.id) {
-        return { ...m, current_job_produced: nextUnits };
-      }
-      return m;
-    }));
+    // Optimistic UI state update
+    setJobs(prev => prev.map(j => j.id === job.id ? { ...j, units_produced: nextUnits } : j));
+    setMachines(prev => prev.map(m => m.id === selectedMachineRef.current?.id ? { ...m, current_job_produced: nextUnits } : m));
 
     try {
       if (job.id) {
-        const res = await fetch(`${API}/kiosk/jobs/${job.id}/produce`, {
+        await fetch(`${API}/kiosk/jobs/${job.id}/produce`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ count: addCount })
+          body: JSON.stringify({ count: addCount }),
         });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.target_reached) {
-            showToast(`🎯 Production target reached (${data.units_produced}/${data.target_qty} units)! Ready to complete.`, 'success');
-          }
-        }
       }
     } catch (e) {
-      console.error('Failed to increment unit:', e);
+      console.error('Pulse produce error:', e);
     } finally {
       isProducingRef.current = false;
     }
   };
 
-  // ── Auto Machining Cycle Simulation Effect ─────────────────────────────────
-  const isTargetMet = runningJob ? (currentProduced >= currentTarget) : false;
-
+  // Automated part simulation pulse when running
   useEffect(() => {
-    if (!isRunning || !runningJob || !autoSimulate || isTargetMet) {
-      setCycleElapsed(0);
-      return;
-    }
+    if (!isRunning || !runningJob?.id || !autoSimulate || currentProduced >= currentTarget) return;
 
-    const interval = setInterval(() => {
-      setCycleElapsed(prev => {
-        const next = Math.round((prev + 0.1) * 10) / 10;
-        if (next >= CYCLE_DURATION) {
-          handleProduce(1);
-          return 0;
-        }
-        return next;
-      });
-    }, 100);
+    const timer = setInterval(() => {
+      handleProduceUnit(1);
+    }, 3500);
 
-    return () => clearInterval(interval);
-  }, [isRunning, runningJob?.id, autoSimulate, isTargetMet]);
+    return () => clearInterval(timer);
+  }, [isRunning, runningJob?.id, autoSimulate, currentProduced, currentTarget]);
 
-  const cfg = selectedMachine ? (STATUS_CONFIG[selectedMachine.status] || STATUS_CONFIG.Stopped) : null;
-
-  const st = getStyles(T);
+  if (!selectedPlant) return null;
 
   return (
-    <div style={st.page}>
-      {/* Toast */}
+    <AppShell
+      pageTitle="Machine Operations Terminal"
+      breadcrumbs={['Terminal', selectedMachine ? selectedMachine.name : 'Console']}
+      lastUpdated={lastUpdated}
+      telemetryStatus="online"
+      onRefresh={fetchMachines}
+    >
+      {/* Toast Alert */}
       {toast && (
-        <div style={{ ...st.toast, background: toast.type === 'error' ? '#ef4444' : '#22c55e' }}>
-          {toast.type === 'error' ? <AlertTriangle size={16} /> : <CheckCircle2 size={16} />}
-          {toast.msg}
+        <div style={{
+          position: 'fixed',
+          bottom: 24,
+          right: 24,
+          zIndex: 9999,
+          padding: '10px 16px',
+          borderRadius: 4,
+          background: toast.type === 'error' ? 'var(--status-stopped)' : (toast.type === 'info' ? 'var(--primary)' : 'var(--status-running)'),
+          color: '#ffffff',
+          fontSize: 12,
+          fontWeight: 700,
+          boxShadow: 'var(--shadow-modal)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8
+        }}>
+          {toast.type === 'error' ? <AlertTriangle size={15} /> : <CheckCircle2 size={15} />}
+          <span>{toast.msg}</span>
         </div>
       )}
 
-      {/* Header */}
-      <div style={st.header}>
-        <button onClick={() => navigate('/dashboard')} style={st.backBtn}>
-          <ArrowLeft size={18} /> Back to Dashboard
-        </button>
-        <div style={st.headerTitle}>
-          <Zap size={22} color="#6366f1" />
-          <span>Machine Kiosk</span>
-          <span style={st.plantBadge}>{selectedPlant?.name}</span>
-        </div>
-        <div style={st.headerRight}>
-          <button 
-            onClick={() => navigate('/scheduling')} 
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              background: 'rgba(99,102,241,0.15)',
-              border: '1px solid rgba(99,102,241,0.4)',
-              color: '#818cf8',
-              borderRadius: 8,
-              padding: '6px 12px',
-              fontSize: 12,
-              fontWeight: 600,
-              cursor: 'pointer'
-            }}
-          >
-            <Calendar size={14} />
-            Job Schedule
-          </button>
-          <button onClick={toggleTheme} style={st.themeBtn} title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}>
-            {isDark ? <Sun size={16} /> : <Moon size={16} />}
-          </button>
-          <button onClick={fetchMachines} style={st.refreshBtn} title="Refresh">
-            <RefreshCw size={16} />
-          </button>
-        </div>
-      </div>
-
-      <div style={st.layout}>
-        {/* LEFT — Machine Fleet */}
-        <div style={st.leftPanel}>
-          <div style={st.panelHeader}>
-            <Activity size={16} color="#6366f1" />
-            <span>Machine Fleet</span>
-            <span style={st.countBadge}>{machines.length}</span>
+      {/* 3-COLUMN INDUSTRIAL WORKSTATION LAYOUT */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: '260px 1fr 300px',
+        gap: '14px',
+        minHeight: 'calc(100vh - 110px)'
+      }}>
+        {/* COLUMN 1: FLEET STATION DIRECTORY */}
+        <div className="mes-card" style={{ padding: '12px', display: 'flex', flexDirection: 'column' }}>
+          <div className="mes-card-header" style={{ marginBottom: 8, paddingBottom: 6 }}>
+            <span className="mes-card-title">Plant Fleet ({machines.length})</span>
+            <button
+              onClick={fetchMachines}
+              className="btn btn-secondary"
+              style={{ padding: '2px 6px', fontSize: 10 }}
+              title="Refresh Fleet Telemetry"
+            >
+              <RefreshCw size={11} />
+            </button>
           </div>
-          {loading ? (
-            <div style={st.centerLoad}><Loader2 size={24} style={{ animation: 'spin 1s linear infinite' }} color="#6366f1" /></div>
-          ) : (
-            <div style={st.machineGrid}>
-              {machines.map(m => {
-                const sc = STATUS_CONFIG[m.status] || STATUS_CONFIG.Stopped;
-                const isSelected = selectedMachine?.id === m.id;
-                return (
-                  <div
-                    key={m.id}
-                    onClick={() => selectMachine(m)}
-                    style={{
-                      ...st.machineCard,
-                      border: isSelected ? `2px solid ${sc.color}` : `2px solid ${T.panelBorder}`,
-                      background: isSelected ? sc.bg : T.cardBg,
-                      boxShadow: isSelected ? `0 0 20px ${sc.color}30` : 'none',
-                    }}
-                  >
-                    <div style={st.machineCardTop}>
-                      <span style={st.machineName}>{m.name}</span>
-                      <span style={{ ...st.statusDot, background: sc.dot, boxShadow: `0 0 6px ${sc.dot}` }} />
-                    </div>
-                    <div style={st.machineType}>{m.machine_type || 'General'}</div>
-                    <div style={{ ...st.statusLabel, color: sc.color }}>{sc.label}</div>
-                    {m.current_job_title && (
-                      <div style={st.currentJobTag}>
-                        <Play size={10} />
-                        {m.current_job_title}
-                      </div>
-                    )}
-                    {m.scheduled_jobs > 0 && (
-                      <div style={{ ...st.pendingTag, background: 'rgba(139,92,246,0.12)', color: '#a78bfa', borderColor: 'rgba(139,92,246,0.3)', display: 'inline-flex', alignItems: 'center' }}>
-                        <CalendarClock size={10} style={{ marginRight: 3 }} />
-                        {m.scheduled_jobs} scheduled
-                      </div>
-                    )}
-                    {m.pending_jobs > 0 && (
-                      <div style={st.pendingTag}>{m.pending_jobs} pending</div>
-                    )}
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', overflowY: 'auto' }}>
+            {machines.map((m) => {
+              const isSelected = selectedMachine?.id === m.id;
+              return (
+                <div
+                  key={m.id}
+                  onClick={() => selectMachine(m)}
+                  style={{
+                    padding: '8px 10px',
+                    borderRadius: 4,
+                    border: `1px solid ${isSelected ? 'var(--primary)' : 'var(--border-subtle)'}`,
+                    background: isSelected ? 'var(--primary-bg)' : 'var(--bg-surface)',
+                    cursor: 'pointer',
+                    transition: 'all 0.12s ease'
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
+                    <span style={{ fontWeight: '700', color: 'var(--text-main)', fontSize: 12 }}>
+                      {m.name}
+                    </span>
+                    <StatusBadge status={m.status} size="sm" />
                   </div>
-                );
-              })}
-            </div>
-          )}
+                  <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>
+                    {m.machine_type || 'Industrial Station'} • #{m.id}
+                  </div>
+                  {m.current_job_title && (
+                    <div style={{
+                      fontSize: 10,
+                      fontWeight: 600,
+                      color: 'var(--primary)',
+                      marginTop: 4,
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}>
+                      ▶ {m.current_job_title}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
 
-        {/* CENTER — Active Machine */}
-        <div style={st.centerPanel}>
-          {!selectedMachine ? (
-            <div style={st.noSelection}>
-              <Activity size={48} color={T.textFaint} />
-              <p style={{ color: T.textFaint, marginTop: 12, fontSize: 15 }}>Select a machine from the fleet</p>
-            </div>
-          ) : (
+        {/* COLUMN 2: ACTIVE STATION CONSOLE */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          {selectedMachine ? (
             <>
-              {/* Machine Status Hero */}
-              <div style={{ ...st.machineHero, border: `1px solid ${cfg.border}`, background: cfg.bg }}>
-                <div style={st.heroTop}>
+              {/* Selected Machine Identity & Hardware Status Banner */}
+              <div className="mes-card" style={{ padding: '14px 18px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div>
-                    <div style={st.heroMachineName}>{selectedMachine.name}</div>
-                    <div style={st.heroMachineType}>{selectedMachine.machine_type || 'General Machine'}</div>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      CONTROL PANEL • NODE #{selectedMachine.id}
+                    </div>
+                    <h2 style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-main)', margin: '2px 0 0 0', letterSpacing: '-0.2px' }}>
+                      {selectedMachine.name}
+                    </h2>
+                    <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
+                      Type: <strong>{selectedMachine.machine_type || 'Standard Station'}</strong> • Location: <strong>{selectedPlant.name}</strong>
+                    </div>
                   </div>
-                  <div style={{ ...st.heroBadge, color: cfg.color, border: `1px solid ${cfg.border}` }}>
-                    <span style={{ ...st.pulsingDot, background: cfg.dot }} />
-                    {cfg.label}
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>
+                        Active Elapsed
+                      </div>
+                      <div className="font-mono" style={{ fontSize: 14, fontWeight: 700, color: isRunning ? 'var(--status-running)' : 'var(--text-muted)' }}>
+                        {isRunning ? timer : '00:00:00'}
+                      </div>
+                    </div>
+                    <StatusBadge status={selectedMachine.status} />
                   </div>
                 </div>
 
-                {/* Timer */}
-                {isRunning && runningJob && (
-                  <div style={st.timerRow}>
-                    <Clock size={14} color={T.textMuted} />
-                    <span style={st.timerLabel}>Runtime</span>
-                    <span style={st.timerValue}>{timer}</span>
-                  </div>
-                )}
-
-                {/* Current Job Progress & Production Simulation */}
-                {runningJob && (
-                  <div style={st.currentJobBox}>
-                    <div style={st.jobInfoRow}>
-                      <div>
-                        <div style={st.jobTitle}>{runningJob.title}</div>
-                        <div style={st.jobPart}><Package size={12} /> {runningJob.part_name}</div>
-                      </div>
-                      <div style={{ ...st.priorityBadge, color: PRIORITY_CONFIG[runningJob.priority]?.color, background: PRIORITY_CONFIG[runningJob.priority]?.bg }}>
-                        {runningJob.priority}
-                      </div>
-                    </div>
-
-                    {/* Target Met Banner */}
-                    {currentProduced >= currentTarget && (
-                      <div style={{
-                        background: 'rgba(34, 197, 94, 0.15)',
-                        border: '1px solid rgba(34, 197, 94, 0.35)',
-                        borderRadius: 8,
-                        padding: '8px 12px',
-                        marginBottom: 10,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 8,
-                        color: '#22c55e',
-                        fontSize: 12,
-                        fontWeight: 600
-                      }}>
-                        <CheckCircle2 size={16} /> Target Reached (100%) — Click Complete Job to log production
-                      </div>
-                    )}
-
-                    {/* Progress Bar with Live Gradient and Striping */}
-                    <div style={st.progressBar}>
-                      <div style={{
-                        ...st.progressFill,
-                        width: `${progress}%`,
-                        background: currentProduced >= currentTarget
-                          ? '#22c55e'
-                          : 'linear-gradient(90deg, #6366f1, #22c55e)',
-                        backgroundImage: currentProduced < currentTarget && autoSimulate
-                          ? 'linear-gradient(45deg, rgba(255,255,255,0.18) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.18) 50%, rgba(255,255,255,0.18) 75%, transparent 75%, transparent)'
-                          : 'none',
-                        backgroundSize: '30px 30px',
-                        animation: currentProduced < currentTarget && autoSimulate
-                          ? 'progressStripes 1.5s linear infinite'
-                          : 'none',
-                        boxShadow: '0 0 10px rgba(34, 197, 94, 0.4)'
-                      }} />
-                    </div>
-
-                    <div style={st.progressLabel}>
-                      <span><strong>{currentProduced}</strong> / {currentTarget} units produced</span>
-                      <span style={{ fontWeight: 700, color: progress === 100 ? '#22c55e' : T.text }}>{progress}%</span>
-                    </div>
-
-                    {/* Live Machining Cycle Simulation Toolbar */}
-                    {currentProduced < currentTarget && (
-                      <div style={{
-                        marginTop: 12,
-                        padding: '10px 12px',
-                        borderRadius: 8,
-                        background: T.timerBg,
-                        border: `1px solid ${T.panelBorder}`
-                      }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11, marginBottom: 6 }}>
-                          <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: T.text, fontWeight: 600 }}>
-                            <span style={{
-                              width: 8, height: 8, borderRadius: '50%',
-                              background: autoSimulate ? '#22c55e' : '#f59e0b',
-                              animation: autoSimulate ? 'pulse 1s infinite' : 'none'
-                            }} />
-                            {autoSimulate ? `Machining Part #${(runningJob.units_produced || 0) + 1}...` : 'Simulation Paused'}
-                          </span>
-                          <span style={{ color: T.textMuted, fontVariantNumeric: 'tabular-nums' }}>
-                            {cycleElapsed.toFixed(1)}s / {CYCLE_DURATION.toFixed(1)}s
-                          </span>
-                        </div>
-
-                        {/* Cycle mini progress bar */}
-                        <div style={{ height: 4, background: T.progressBg, borderRadius: 2, overflow: 'hidden' }}>
-                          <div style={{
-                            height: '100%',
-                            width: `${Math.min(100, (cycleElapsed / CYCLE_DURATION) * 100)}%`,
-                            background: '#22c55e',
-                            transition: 'width 0.1s linear'
-                          }} />
-                        </div>
-
-                        {/* Simulation Controls */}
-                        <div style={{ display: 'flex', gap: 8, marginTop: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-                          <button
-                            type="button"
-                            onClick={() => setAutoSimulate(v => !v)}
-                            style={{
-                              display: 'flex', alignItems: 'center', gap: 4,
-                              padding: '4px 10px', borderRadius: 6,
-                              border: `1px solid ${autoSimulate ? 'rgba(34,197,94,0.4)' : T.btnBorder}`,
-                              background: autoSimulate ? 'rgba(34,197,94,0.15)' : 'none',
-                              color: autoSimulate ? '#22c55e' : T.textMuted,
-                              fontSize: 11, fontWeight: 600, cursor: 'pointer'
-                            }}
-                          >
-                            {autoSimulate ? <Pause size={12} /> : <Play size={12} />}
-                            {autoSimulate ? 'Auto-Produce: ON' : 'Auto-Produce: OFF'}
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => handleProduce(1)}
-                            disabled={actionLoading || runningJob.units_produced >= runningJob.target_qty}
-                            title="Simulate 1 Part Produced"
-                            style={{
-                              display: 'flex', alignItems: 'center', gap: 3,
-                              padding: '4px 10px', borderRadius: 6, border: `1px solid ${T.btnBorder}`,
-                              background: T.cardBg, color: T.text, fontSize: 11, fontWeight: 600, cursor: 'pointer'
-                            }}
-                          >
-                            +1 Part
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => handleProduce(10)}
-                            disabled={actionLoading || runningJob.units_produced >= runningJob.target_qty}
-                            title="Simulate 10 Parts Produced"
-                            style={{
-                              display: 'flex', alignItems: 'center', gap: 3,
-                              padding: '4px 10px', borderRadius: 6, border: `1px solid ${T.btnBorder}`,
-                              background: T.cardBg, color: T.text, fontSize: 11, fontWeight: 600, cursor: 'pointer'
-                            }}
-                          >
-                            +10 Parts
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Orphan Running State Mismatch Warning */}
-                {isRunning && !runningJob && (
-                  <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.25)', borderRadius: 8, padding: 12, marginBottom: 14 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#ef4444' }}>
-                      <AlertTriangle size={15} /> State Mismatch
-                    </div>
-                    <p style={{ margin: '4px 0 0 0', fontSize: 12, color: T.textMuted, lineHeight: 1.4 }}>
-                      This machine is marked as <strong>Running</strong> in the database but has no active job assigned. Please set it to <strong>Idle</strong> to run a job.
-                    </p>
-                  </div>
-                )}
-
-                {/* Action Buttons */}
-                <div style={st.actionRow}>
-                  {isRunning && runningJob ? (
-                    <>
-                      <button
-                        onClick={() => {
-                          setUnitsInput(String(runningJob.units_produced || ''));
-                          setShowComplete(true);
-                        }}
-                        disabled={actionLoading}
-                        style={{ ...st.actionBtn, background: '#22c55e', color: '#fff' }}
-                      >
-                        <CheckCircle2 size={16} /> Complete Job
-                      </button>
-                      <button
-                        onClick={() => handleCancelJob(runningJob.id)}
-                        disabled={actionLoading}
-                        style={{ ...st.actionBtn, background: 'rgba(239,68,68,0.15)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.4)' }}
-                      >
-                        <X size={16} /> Cancel Job
-                      </button>
-                    </>
+                {/* Primary Station Control Buttons (Start / Pause / Stop / Maintenance) */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  marginTop: 14,
+                  paddingTop: 12,
+                  borderTop: '1px solid var(--border-subtle)'
+                }}>
+                  {selectedMachine.status !== 'Running' ? (
+                    <button
+                      onClick={() => handleSetStatus('Running')}
+                      disabled={actionLoading}
+                      className="btn btn-primary"
+                      style={{ background: 'var(--status-running)', borderColor: 'var(--status-running)' }}
+                    >
+                      <Play size={13} /> Set Station Running
+                    </button>
                   ) : (
-                    <>
-                      <button
-                        onClick={() => handleSetStatus('Idle')}
-                        disabled={actionLoading || selectedMachine.status === 'Idle'}
-                        style={{ ...st.actionBtn, background: 'rgba(245,158,11,0.15)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.4)' }}
-                      >
-                        <Clock size={15} /> Set Idle
-                      </button>
-                      <button
-                        onClick={() => handleSetStatus('Stopped')}
-                        disabled={actionLoading || selectedMachine.status === 'Stopped'}
-                        style={{ ...st.actionBtn, background: 'rgba(239,68,68,0.12)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)' }}
-                      >
-                        <Square size={15} /> Stop
-                      </button>
-                      <button
-                        onClick={() => handleSetStatus('Down')}
-                        disabled={actionLoading || selectedMachine.status === 'Down'}
-                        style={{ ...st.actionBtn, background: 'rgba(107,114,128,0.12)', color: '#9ca3af', border: '1px solid rgba(107,114,128,0.3)' }}
-                      >
-                        <AlertTriangle size={15} /> Mark Down
-                      </button>
-                    </>
+                    <button
+                      onClick={() => handleSetStatus('Idle')}
+                      disabled={actionLoading}
+                      className="btn btn-secondary"
+                      style={{ color: 'var(--status-idle)' }}
+                    >
+                      <Pause size={13} /> Pause Station (Idle)
+                    </button>
+                  )}
+
+                  {selectedMachine.status !== 'Stopped' && (
+                    <button
+                      onClick={() => handleSetStatus('Stopped')}
+                      disabled={actionLoading}
+                      className="btn btn-outline-danger"
+                    >
+                      <Square size={13} /> Stop Station
+                    </button>
+                  )}
+
+                  {selectedMachine.status !== 'Maintenance' && (
+                    <button
+                      onClick={() => handleSetStatus('Maintenance')}
+                      disabled={actionLoading}
+                      className="btn btn-secondary"
+                    >
+                      Mark Maintenance
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Active Work Order Telemetry & Real-Time Output */}
+              <div className="mes-card">
+                <div className="mes-card-header">
+                  <span className="mes-card-title">Active Work Order Machining</span>
+                  {runningJob && (
+                    <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                      WO #{runningJob.id}
+                    </span>
                   )}
                 </div>
 
-              </div>
-
-              {/* Complete Job Modal */}
-              {showComplete && (
-                <div style={st.modal}>
-                  <div style={st.modalBox}>
-                    <div style={st.modalTitle}><CheckCircle2 size={18} color="#22c55e" /> Complete Job</div>
-                    <p style={st.modalSub}>Enter the number of units produced for <strong>{runningJob?.title}</strong></p>
-                    <input
-                      type="number"
-                      value={unitsInput}
-                      onChange={e => setUnitsInput(e.target.value)}
-                      placeholder={`Target: ${runningJob?.target_qty} units`}
-                      style={st.modalInput}
-                      min="0"
-                      autoFocus
-                    />
-                    <div style={st.modalActions}>
-                      <button onClick={() => setShowComplete(false)} style={st.cancelBtn}>Cancel</button>
-                      <button onClick={handleCompleteJob} disabled={actionLoading} style={st.confirmBtn}>
-                        {actionLoading ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : null}
-                        Confirm Complete
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Schedule Job Modal */}
-              {scheduleModalJob && (
-                <div style={st.modal}>
-                  <div style={st.modalBox}>
-                    <div style={st.modalTitle}>
-                      <CalendarClock size={18} color="#8b5cf6" /> Schedule Job
-                    </div>
-                    <p style={st.modalSub}>
-                      Schedule <strong>{scheduleModalJob.title}</strong> for <strong>{selectedMachine.name}</strong>
-                    </p>
-                    <form onSubmit={handleScheduleJob}>
-                      <div style={{ marginBottom: 12 }}>
-                        <label style={{ fontSize: 11, color: T.textMuted, display: 'block', marginBottom: 4, textAlign: 'left' }}>
-                          Scheduled Start Time
-                        </label>
-                        <input
-                          type="datetime-local"
-                          value={scheduleTime}
-                          onChange={e => setScheduleTime(e.target.value)}
-                          style={{ ...st.modalInput, width: '100%', boxSizing: 'border-box' }}
-                          required
-                        />
+                {runningJob ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-main)', margin: 0 }}>
+                          {runningJob.title}
+                        </h3>
+                        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
+                          Part: <strong style={{ color: 'var(--text-main)' }}>{runningJob.part_name}</strong> • Priority: <strong>{runningJob.priority}</strong>
+                        </div>
                       </div>
-                      <div style={{ marginBottom: 16 }}>
-                        <label style={{ fontSize: 11, color: T.textMuted, display: 'block', marginBottom: 4, textAlign: 'left' }}>
-                          Estimated Duration (Minutes)
-                        </label>
-                        <input
-                          type="number"
-                          value={scheduleDuration}
-                          onChange={e => setScheduleDuration(e.target.value)}
-                          placeholder="e.g. 60"
-                          style={{ ...st.modalInput, width: '100%', boxSizing: 'border-box' }}
-                          min="5"
-                        />
+
+                      <div style={{ textAlign: 'right' }}>
+                        <div className="font-mono" style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-main)' }}>
+                          {currentProduced} / {currentTarget}
+                        </div>
+                        <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                          Target Units
+                        </div>
                       </div>
-                      <div style={st.modalActions}>
-                        <button type="button" onClick={() => setScheduleModalJob(null)} style={st.cancelBtn}>
-                          Cancel
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div>
+                      <div style={{
+                        height: 10,
+                        background: 'var(--bg-subtle)',
+                        borderRadius: 3,
+                        border: '1px solid var(--border-color)',
+                        overflow: 'hidden'
+                      }}>
+                        <div style={{
+                          width: `${progressPct}%`,
+                          height: '100%',
+                          background: progressPct >= 100 ? 'var(--status-running)' : 'var(--primary)',
+                          transition: 'width 0.25s ease'
+                        }} />
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+                        <span>Progress: <strong style={{ color: 'var(--text-main)' }}>{progressPct}%</strong></span>
+                        <span>Remaining: <strong style={{ color: 'var(--text-main)' }}>{Math.max(0, currentTarget - currentProduced)}</strong> units</span>
+                      </div>
+                    </div>
+
+                    {/* Operator Counter Actions */}
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '10px 12px',
+                      background: 'var(--bg-subtle)',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: 4
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                          Manual Part Pulse:
+                        </span>
+                        <button
+                          onClick={() => handleProduceUnit(1)}
+                          disabled={actionLoading || currentProduced >= currentTarget}
+                          className="btn btn-secondary"
+                          style={{ padding: '4px 8px', fontSize: 11 }}
+                        >
+                          +1 Part
                         </button>
                         <button
-                          type="submit"
-                          disabled={actionLoading}
-                          style={{ ...st.confirmBtn, background: '#8b5cf6', display: 'flex', alignItems: 'center', gap: 6 }}
+                          onClick={() => handleProduceUnit(5)}
+                          disabled={actionLoading || currentProduced >= currentTarget}
+                          className="btn btn-secondary"
+                          style={{ padding: '4px 8px', fontSize: 11 }}
                         >
-                          {actionLoading ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Calendar size={14} />}
-                          Confirm Schedule
+                          +5 Parts
                         </button>
                       </div>
-                    </form>
-                  </div>
-                </div>
-              )}
 
-              {/* Planned Machine Schedule Timeline */}
-              {scheduledJobs.length > 0 && (
-                <div style={{ ...st.logPanel, marginBottom: 16 }}>
-                  <div style={{ ...st.panelHeader, borderBottom: `1px solid ${T.panelBorder}` }}>
-                    <CalendarClock size={15} color="#8b5cf6" />
-                    <span style={{ color: '#a78bfa', fontWeight: 600 }}>Planned Machine Schedule</span>
-                    <span style={{ ...st.countBadge, background: 'rgba(139,92,246,0.15)', color: '#a78bfa' }}>{scheduledJobs.length}</span>
-                  </div>
-                  <div style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    {scheduledJobs.map((sj, idx) => (
-                      <div key={sj.id} style={{
-                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                        padding: '8px 12px', borderRadius: 8,
-                        background: 'rgba(139,92,246,0.06)', border: '1px solid rgba(139,92,246,0.18)'
-                      }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                          <span style={{
-                            width: 22, height: 22, borderRadius: '50%', background: '#8b5cf6',
-                            color: '#fff', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center'
-                          }}>
-                            {idx + 1}
-                          </span>
-                          <div>
-                            <div style={{ fontSize: 13, fontWeight: 600, color: T.textPanel }}>{sj.title}</div>
-                            <div style={{ fontSize: 11, color: T.textMuted }}>{sj.part_name} · Target: {sj.target_qty} units</div>
-                          </div>
-                        </div>
-                        <div style={{ textAlign: 'right' }}>
-                          <div style={{ fontSize: 12, fontWeight: 600, color: '#a78bfa' }}>
-                            {new Date(sj.scheduled_start_at).toLocaleString('en-IN', {
-                              month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-                            })}
-                          </div>
-                          <div style={{ fontSize: 10, color: T.textFaint }}>
-                            {sj.estimated_duration_min ? `Est. ${sj.estimated_duration_min} mins` : 'Pending dispatch'}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+                      <button
+                        onClick={() => {
+                          setUnitsInput(String(currentProduced));
+                          setShowComplete(true);
+                        }}
+                        className="btn btn-primary"
+                        style={{ padding: '5px 12px', fontSize: 12 }}
+                      >
+                        <Check size={12} /> Log Job Completion
+                      </button>
+                    </div>
 
-              {/* Status Log Timeline */}
-              <div style={st.logPanel}>
-                <div style={st.panelHeader}>
-                  <List size={15} color="#6366f1" />
-                  <span>Status Log</span>
-                  <span style={st.countBadge}>{logs.length}</span>
+                    {/* Simulation Environment Notice */}
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '6px 10px',
+                      background: 'var(--bg-subtle)',
+                      border: '1px solid var(--border-subtle)',
+                      borderRadius: 3,
+                      fontSize: 10,
+                      color: 'var(--text-muted)'
+                    }}>
+                      <span>Notice: Running in Industry 4.0 Telemetry Simulation mode (3.5s pulse cycle).</span>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
+                        <input
+                          type="checkbox"
+                          checked={autoSimulate}
+                          onChange={(e) => setAutoSimulate(e.target.checked)}
+                        />
+                        <span>Auto-Pulse</span>
+                      </label>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ textAlign: 'center', padding: '36px 20px', color: 'var(--text-muted)' }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-main)', marginBottom: 4 }}>
+                      No Work Order Currently Active on Station
+                    </div>
+                    <p style={{ fontSize: 12, marginBottom: 12 }}>
+                      Select a work order from the queue on the right to start machining.
+                    </p>
+                    <button
+                      onClick={() => setShowAddJob(true)}
+                      className="btn btn-primary"
+                      style={{ fontSize: 11 }}
+                    >
+                      <Plus size={11} /> Create Work Order
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Station Event Journal */}
+              <div className="mes-table-container">
+                <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-surface)' }}>
+                  <span className="mes-card-title">Station Event & Sensor Log</span>
                 </div>
-                <div style={st.logList}>
-                  {logs.length === 0 ? (
-                    <div style={st.emptyLog}>No logs yet</div>
-                  ) : logs.slice(0, 15).map((log) => {
-                    const sc = STATUS_CONFIG[log.status] || STATUS_CONFIG.Stopped;
-                    return (
-                      <div key={log.id} style={st.logItem}>
-                        <div style={{ ...st.logDot, background: sc.dot, boxShadow: `0 0 5px ${sc.dot}` }} />
-                        <div style={st.logContent}>
-                          <div style={{ ...st.logStatus, color: sc.color }}>{log.status}</div>
-                          <div style={st.logNote}>{log.note || (log.job_title ? `Job: ${log.job_title}` : '—')}</div>
-                          {log.units_produced > 0 && (
-                            <div style={st.logUnits}><Package size={10} /> {log.units_produced} units</div>
-                          )}
-                        </div>
-                        <div style={st.logTime}>
-                          {new Date(log.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
-                        </div>
-                      </div>
-                    );
-                  })}
+                <div style={{ maxHeight: 180, overflowY: 'auto' }}>
+                  <table className="mes-table">
+                    <thead>
+                      <tr>
+                        <th>Timestamp</th>
+                        <th>Status</th>
+                        <th>Note / Event</th>
+                        <th>Output</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {logs.length === 0 ? (
+                        <tr>
+                          <td colSpan={4} style={{ textAlign: 'center', padding: '16px', color: 'var(--text-muted)' }}>
+                            No controller logs recorded yet for this station.
+                          </td>
+                        </tr>
+                      ) : (
+                        logs.slice(0, 15).map((log, idx) => (
+                          <tr key={idx}>
+                            <td className="font-mono" style={{ fontSize: 10, color: 'var(--text-muted)' }}>
+                              {new Date(log.timestamp).toLocaleTimeString()}
+                            </td>
+                            <td>
+                              <StatusBadge status={log.status} size="sm" />
+                            </td>
+                            <td style={{ fontSize: 11 }}>{log.note || 'Normal operation cycle'}</td>
+                            <td className="metric" style={{ fontSize: 11 }}>
+                              {log.units_produced ? `${log.units_produced} pcs` : '—'}
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </>
+          ) : (
+            <div className="mes-card" style={{ textAlign: 'center', padding: 60, color: 'var(--text-muted)' }}>
+              Select a machine from the left directory to open its terminal console.
+            </div>
           )}
         </div>
 
-        {/* RIGHT — Job Queue */}
-        <div style={st.rightPanel}>
-          <div style={{ ...st.panelHeader, justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Package size={15} color="#6366f1" />
-              <span>Job Queue</span>
-              {selectedMachine && <span style={st.countBadge}>{pendingJobs.length}</span>}
-            </div>
-            {selectedMachine && (
-              <button onClick={() => setShowAddJob(v => !v)} style={st.addJobBtn}>
-                {showAddJob ? <X size={14} /> : <Plus size={14} />}
-                {showAddJob ? 'Cancel' : 'Add Job'}
-              </button>
-            )}
+        {/* COLUMN 3: STATION QUEUE & DISPATCH */}
+        <div className="mes-card" style={{ padding: '12px', display: 'flex', flexDirection: 'column' }}>
+          <div className="mes-card-header" style={{ marginBottom: 8, paddingBottom: 6 }}>
+            <span className="mes-card-title">Work Order Queue</span>
+            <button
+              onClick={() => setShowAddJob(v => !v)}
+              className="btn btn-primary"
+              style={{ padding: '3px 8px', fontSize: 11 }}
+            >
+              {showAddJob ? <X size={11} /> : <Plus size={11} />}
+              {showAddJob ? 'Cancel' : 'Add Job'}
+            </button>
           </div>
 
-          {!selectedMachine ? (
-            <div style={st.noSelection}><p style={{ color: T.textFaint, fontSize: 14 }}>Select a machine first</p></div>
-          ) : (
-            <>
-              {/* Add Job Form */}
-              {showAddJob && (
-                <form onSubmit={handleAddJob} style={st.addJobForm}>
-                  <div style={st.formTitle}>New Job</div>
-                  <input
-                    placeholder="Job Title (e.g. Shaft Turning)"
-                    value={newJob.title}
-                    onChange={e => setNewJob(p => ({ ...p, title: e.target.value }))}
-                    style={st.formInput}
-                    required
-                  />
-                  <input
-                    placeholder="Part Name (e.g. Gear Shaft)"
-                    value={newJob.part_name}
-                    onChange={e => setNewJob(p => ({ ...p, part_name: e.target.value }))}
-                    style={st.formInput}
-                    required
-                  />
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <input
-                      type="number"
-                      placeholder="Target Qty"
-                      value={newJob.target_qty}
-                      onChange={e => setNewJob(p => ({ ...p, target_qty: e.target.value }))}
-                      style={{ ...st.formInput, flex: 1 }}
-                      min="1"
-                      required
-                    />
-                    <select
-                      value={newJob.priority}
-                      onChange={e => setNewJob(p => ({ ...p, priority: e.target.value }))}
-                      style={{ ...st.formInput, flex: 1 }}
-                    >
-                      <option>Urgent</option>
-                      <option>High</option>
-                      <option>Normal</option>
-                      <option>Low</option>
-                    </select>
-                  </div>
+          {/* Quick Add Job Form */}
+          {showAddJob && (
+            <form onSubmit={handleAddJob} style={{
+              padding: 10,
+              background: 'var(--bg-subtle)',
+              border: '1px solid var(--border-color)',
+              borderRadius: 4,
+              marginBottom: 10,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 8
+            }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-main)', textTransform: 'uppercase' }}>
+                New Station Work Order
+              </div>
 
-                  {/* Schedule for later toggle */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '8px 0 4px 0' }}>
-                    <input
-                      type="checkbox"
-                      id="schedule-toggle"
-                      checked={newJob.is_scheduled}
-                      onChange={e => {
-                        const checked = e.target.checked;
-                        const defaultTime = new Date(Date.now() + 30 * 60 * 1000).toISOString().slice(0, 16);
-                        setNewJob(p => ({
-                          ...p,
-                          is_scheduled: checked,
-                          scheduled_start_at: checked ? (p.scheduled_start_at || defaultTime) : '',
-                        }));
-                      }}
-                      style={{ accentColor: '#8b5cf6', cursor: 'pointer' }}
-                    />
-                    <label htmlFor="schedule-toggle" style={{ fontSize: 12, color: T.text, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
-                      <CalendarClock size={14} color="#8b5cf6" /> Schedule for Later
-                    </label>
-                  </div>
+              <input
+                placeholder="Job Title (e.g. Shaft Turning)"
+                value={newJob.title}
+                onChange={e => setNewJob(p => ({ ...p, title: e.target.value }))}
+                required
+                style={{ fontSize: 11 }}
+              />
 
-                  {newJob.is_scheduled && (
-                    <div style={{ background: 'rgba(139,92,246,0.06)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: 8, padding: 8, marginBottom: 8 }}>
-                      <div style={{ fontSize: 11, color: '#a78bfa', fontWeight: 600, marginBottom: 4 }}>Scheduled Start Time</div>
-                      <input
-                        type="datetime-local"
-                        value={newJob.scheduled_start_at}
-                        onChange={e => setNewJob(p => ({ ...p, scheduled_start_at: e.target.value }))}
-                        style={{ ...st.formInput, marginBottom: 6 }}
-                        required={newJob.is_scheduled}
-                      />
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ fontSize: 11, color: T.textMuted }}>Est. Mins:</span>
-                        <input
-                          type="number"
-                          value={newJob.estimated_duration_min}
-                          onChange={e => setNewJob(p => ({ ...p, estimated_duration_min: e.target.value }))}
-                          placeholder="60"
-                          style={{ ...st.formInput, width: 80, padding: '4px 8px', fontSize: 11 }}
-                          min="5"
-                        />
-                      </div>
-                    </div>
-                  )}
+              <input
+                placeholder="Part Name (e.g. Gear Pin)"
+                value={newJob.part_name}
+                onChange={e => setNewJob(p => ({ ...p, part_name: e.target.value }))}
+                required
+                style={{ fontSize: 11 }}
+              />
 
-                  <button type="submit" disabled={actionLoading} style={{ ...st.submitBtn, background: newJob.is_scheduled ? '#8b5cf6' : st.submitBtn.background }}>
-                    {actionLoading ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : (newJob.is_scheduled ? <Calendar size={14} /> : <Plus size={14} />)}
-                    {newJob.is_scheduled ? 'Schedule Job' : 'Add to Queue'}
-                  </button>
-                </form>
-              )}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                <input
+                  type="number"
+                  placeholder="Target Qty"
+                  min="1"
+                  value={newJob.target_qty}
+                  onChange={e => setNewJob(p => ({ ...p, target_qty: e.target.value }))}
+                  required
+                  style={{ fontSize: 11 }}
+                />
+                <select
+                  value={newJob.priority}
+                  onChange={e => setNewJob(p => ({ ...p, priority: e.target.value }))}
+                  style={{ fontSize: 11 }}
+                >
+                  <option value="Normal">Normal</option>
+                  <option value="High">High</option>
+                  <option value="Urgent">Urgent</option>
+                  <option value="Low">Low</option>
+                </select>
+              </div>
 
-              {jobsLoading ? (
-                <div style={st.centerLoad}><Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} color="#6366f1" /></div>
-              ) : (
-                <>
-                  {runningJob && (
-                    <div style={st.jobSection}>
-                      <div style={st.sectionLabel}>RUNNING</div>
-                      <JobCard job={runningJob} onRun={null} onCancel={handleCancelJob} isRunning disabled={actionLoading} T={T} />
-                    </div>
-                  )}
-                  {scheduledJobs.length > 0 && (
-                    <div style={st.jobSection}>
-                      <div style={{ ...st.sectionLabel, color: '#a78bfa' }}>
-                        SCHEDULED ({scheduledJobs.length})
-                      </div>
-                      {scheduledJobs.map(job => (
-                        <JobCard
-                          key={job.id}
-                          job={job}
-                          onRun={isRunning ? null : handleRunJob}
-                          onUnschedule={handleUnscheduleJob}
-                          onCancel={handleCancelJob}
-                          disabled={actionLoading || isRunning}
-                          machineRunning={isRunning}
-                          T={T}
-                        />
-                      ))}
-                    </div>
-                  )}
-                  {pendingJobs.length > 0 && (
-                    <div style={st.jobSection}>
-                      <div style={st.sectionLabel}>PENDING ({pendingJobs.length})</div>
-                      {pendingJobs.map(job => (
-                        <JobCard
-                          key={job.id}
-                          job={job}
-                          onRun={isRunning ? null : handleRunJob}
-                          onSchedule={j => {
-                            setScheduleModalJob(j);
-                            setScheduleTime(new Date(Date.now() + 30 * 60 * 1000).toISOString().slice(0, 16));
-                            setScheduleDuration('60');
-                          }}
-                          onCancel={handleCancelJob}
-                          disabled={actionLoading || isRunning}
-                          machineRunning={isRunning}
-                          T={T}
-                        />
-                      ))}
-                    </div>
-                  )}
-                  {historyJobs.length > 0 && (
-                    <div style={st.jobSection}>
-                      <div style={st.sectionLabel}>HISTORY</div>
-                      {historyJobs.slice(0, 8).map(job => (
-                        <JobCard key={job.id} job={job} disabled T={T} />
-                      ))}
-                    </div>
-                  )}
-                  {jobs.length === 0 && !showAddJob && (
-                    <div style={{ ...st.noSelection, marginTop: 20 }}>
-                      <Package size={32} color={T.textFaint} />
-                      <p style={{ color: T.textFaint, fontSize: 13, marginTop: 8, textAlign: 'center' }}>
-                        No jobs yet.<br />Add a job to get started.
-                      </p>
-                    </div>
-                  )}
-                </>
-              )}
-            </>
+              <button
+                type="submit"
+                disabled={actionLoading}
+                className="btn btn-primary"
+                style={{ width: '100%', fontSize: 11, padding: 6 }}
+              >
+                {actionLoading ? 'Saving...' : 'Add To Queue'}
+              </button>
+            </form>
           )}
+
+          {/* Queue Items */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, overflowY: 'auto' }}>
+            {jobs.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: 30, color: 'var(--text-muted)', fontSize: 11 }}>
+                No work orders queued for this station.
+              </div>
+            ) : (
+              jobs.map((job) => {
+                const isJobRunning = job.status === 'Running';
+                const pConf = PRIORITY_CONFIG[job.priority] || PRIORITY_CONFIG.Normal;
+
+                return (
+                  <div
+                    key={job.id}
+                    style={{
+                      padding: 10,
+                      borderRadius: 4,
+                      background: 'var(--bg-surface)',
+                      border: `1px solid ${isJobRunning ? 'var(--status-running-border)' : 'var(--border-subtle)'}`,
+                      borderLeft: `3px solid ${isJobRunning ? 'var(--status-running)' : 'var(--primary)'}`
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
+                      <span style={{ fontWeight: 700, fontSize: 12, color: 'var(--text-main)' }}>
+                        {job.title}
+                      </span>
+                      <span style={{
+                        fontSize: 9,
+                        fontWeight: 700,
+                        padding: '1px 5px',
+                        borderRadius: 2,
+                        background: pConf.bg,
+                        color: pConf.color,
+                        textTransform: 'uppercase'
+                      }}>
+                        {job.priority}
+                      </span>
+                    </div>
+
+                    <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 6 }}>
+                      {job.part_name} • <strong>{job.target_qty}</strong> pcs
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <StatusBadge status={job.status} size="sm" />
+
+                      {job.status !== 'Running' && job.status !== 'Completed' && (
+                        <button
+                          onClick={() => handleRunJob(job.id)}
+                          disabled={actionLoading || isRunning}
+                          className="btn btn-primary"
+                          style={{ padding: '2px 8px', fontSize: 10 }}
+                          title={isRunning ? 'Machine currently running another job' : 'Start Machining'}
+                        >
+                          <Play size={10} /> Start
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
         </div>
       </div>
 
-      <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
-        @keyframes fadeIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
-        @keyframes slideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
-        @keyframes progressStripes {
-          0% { background-position: 0 0; }
-          100% { background-position: 30px 0; }
-        }
-      `}</style>
-    </div>
-  );
-}
-
-function JobCard({ job, onRun, onSchedule, onUnschedule, onCancel, isRunning, disabled, machineRunning, T }) {
-  const pc = PRIORITY_CONFIG[job.priority] || PRIORITY_CONFIG.Normal;
-
-  return (
-    <div style={{
-      background: T.cardBg,
-      border: `1px solid ${T.panelBorder}`,
-      borderLeft: `3px solid ${JOB_STATUS_COLOR[job.status] || '#6b7280'}`,
-      borderRadius: 10, padding: '10px 12px', marginBottom: 6,
-      opacity: job.status === 'Cancelled' ? 0.5 : 1,
-      transition: 'all 0.2s',
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3 }}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: T.textPanel }}>{job.title}</div>
-        <div style={{ borderRadius: 6, padding: '3px 9px', fontSize: 10, fontWeight: 600, color: pc.color, background: pc.bg }}>
-          {job.priority}
-        </div>
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: T.textMuted, marginBottom: 5 }}>
-        <Package size={11} color={T.textMuted} /> {job.part_name}
-      </div>
-      <div style={{ display: 'flex', gap: 12, fontSize: 11, color: T.textMuted, flexWrap: 'wrap' }}>
-        <span>Target: <strong style={{ color: T.text }}>{job.target_qty}</strong></span>
-        {job.units_produced > 0 && <span>Made: <strong style={{ color: '#22c55e' }}>{job.units_produced}</strong></span>}
-        <span style={{ color: JOB_STATUS_COLOR[job.status], fontWeight: 600 }}>{job.status}</span>
-      </div>
-
-      {/* Scheduled Time Banner */}
-      {job.status === 'Scheduled' && job.scheduled_start_at && (
+      {/* LOG COMPLETION MODAL */}
+      {showComplete && (
         <div style={{
-          marginTop: 6, padding: '4px 8px', borderRadius: 6,
-          background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.25)',
-          display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#a78bfa'
+          position: 'fixed',
+          inset: 0,
+          zIndex: 1000,
+          background: 'var(--bg-modal-overlay)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 20
         }}>
-          <CalendarClock size={12} />
-          <span>
-            {new Date(job.scheduled_start_at).toLocaleString('en-IN', {
-              month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-            })}
-            {job.estimated_duration_min ? ` (~${job.estimated_duration_min}m)` : ''}
-          </span>
-        </div>
-      )}
+          <div className="mes-card" style={{ width: '100%', maxWidth: 380, padding: 20, boxShadow: 'var(--shadow-modal)' }}>
+            <h3 style={{ margin: '0 0 8px 0', fontSize: 15, fontWeight: 800 }}>Complete Work Order</h3>
+            <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14 }}>
+              Verify total good parts produced to calculate final shift OEE and update inventory.
+            </p>
 
-      {/* Scheduled Actions */}
-      {job.status === 'Scheduled' && (
-        <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
-          {onRun && (
-            <button
-              onClick={() => onRun(job.id)}
-              disabled={disabled}
-              title={machineRunning ? 'Complete current job first' : 'Run this job now (early)'}
-              style={{ display:'flex', alignItems:'center', gap:4, padding:'5px 10px', borderRadius:6, border:'none', fontSize:11, fontWeight:600, cursor:'pointer', background:'#8b5cf6', color:'#fff', opacity: disabled ? 0.5 : 1 }}
-            >
-              <Play size={12} /> Start Now
-            </button>
-          )}
-          {onUnschedule && (
-            <button
-              onClick={() => onUnschedule(job.id)}
-              disabled={disabled}
-              title="Move back to Pending queue"
-              style={{ display:'flex', alignItems:'center', gap:4, padding:'5px 10px', borderRadius:6, border:'none', fontSize:11, fontWeight:600, cursor:'pointer', background:'rgba(255,255,255,0.06)', color: T.textMuted }}
-            >
-              <RotateCcw size={12} /> Unschedule
-            </button>
-          )}
-          {onCancel && (
-            <button
-              onClick={() => onCancel(job.id)}
-              disabled={disabled}
-              style={{ display:'flex', alignItems:'center', gap:4, padding:'5px 10px', borderRadius:6, border:'none', fontSize:11, fontWeight:600, cursor:'pointer', background:'rgba(239,68,68,0.12)', color:'#ef4444' }}
-            >
-              <X size={12} /> Cancel
-            </button>
-          )}
-        </div>
-      )}
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: 4, textTransform: 'uppercase' }}>
+                Total Verified Good Units Produced *
+              </label>
+              <input
+                type="number"
+                min="0"
+                value={unitsInput}
+                onChange={e => setUnitsInput(e.target.value)}
+                autoFocus
+                style={{ width: '100%' }}
+              />
+            </div>
 
-      {/* Pending Actions */}
-      {job.status === 'Pending' && (
-        <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
-          {onRun && (
-            <button
-              onClick={() => onRun(job.id)}
-              disabled={disabled}
-              title={machineRunning ? 'Complete current job first' : 'Run this job'}
-              style={{ display:'flex', alignItems:'center', gap:4, padding:'5px 10px', borderRadius:6, border:'none', fontSize:11, fontWeight:600, cursor:'pointer', background:'#6366f1', color:'#fff', opacity: disabled ? 0.5 : 1 }}
-            >
-              <Play size={12} /> Run
-            </button>
-          )}
-          {onSchedule && (
-            <button
-              onClick={() => onSchedule(job)}
-              disabled={disabled}
-              title="Schedule this job for a specific time"
-              style={{ display:'flex', alignItems:'center', gap:4, padding:'5px 10px', borderRadius:6, border:'none', fontSize:11, fontWeight:600, cursor:'pointer', background:'rgba(139,92,246,0.15)', color:'#a78bfa' }}
-            >
-              <CalendarClock size={12} /> Schedule
-            </button>
-          )}
-          {machineRunning && (
-            <span style={{ fontSize: 10, color: T.textFaint, alignSelf: 'center' }}>Machine busy</span>
-          )}
-          {onCancel && (
-            <button
-              onClick={() => onCancel(job.id)}
-              disabled={disabled}
-              style={{ display:'flex', alignItems:'center', gap:4, padding:'5px 10px', borderRadius:6, border:'none', fontSize:11, fontWeight:600, cursor:'pointer', background:'rgba(239,68,68,0.12)', color:'#ef4444' }}
-            >
-              <X size={12} /> Cancel
-            </button>
-          )}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+              <button
+                type="button"
+                onClick={() => setShowComplete(false)}
+                className="btn btn-secondary"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleCompleteJob}
+                disabled={actionLoading}
+                className="btn btn-primary"
+              >
+                {actionLoading ? 'Logging...' : 'Confirm Completion'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
-
-      {job.status === 'Running' && onCancel && (
-        <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
-          <button
-            onClick={() => onCancel(job.id)}
-            disabled={disabled}
-            style={{ display:'flex', alignItems:'center', gap:4, padding:'5px 10px', borderRadius:6, border:'none', fontSize:11, fontWeight:600, cursor:'pointer', background:'rgba(239,68,68,0.12)', color:'#ef4444' }}
-          >
-            <X size={12} /> Cancel
-          </button>
-        </div>
-      )}
-
-      {job.completed_at && (
-        <div style={{ fontSize: 10, color: T.textFaint, marginTop: 4 }}>
-          Done: {new Date(job.completed_at).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}
-        </div>
-      )}
-    </div>
+    </AppShell>
   );
 }
-
-const getStyles = (T) => ({
-  page: {
-    minHeight: '100vh',
-    background: T.pageBg,
-    fontFamily: "'Inter', -apple-system, sans-serif",
-    color: T.text,
-    display: 'flex',
-    flexDirection: 'column',
-    transition: 'background 0.3s, color 0.3s',
-  },
-  header: {
-    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-    padding: '14px 24px',
-    background: T.headerBg,
-    borderBottom: `1px solid ${T.headerBorder}`,
-    backdropFilter: 'blur(12px)',
-    position: 'sticky', top: 0, zIndex: 100,
-  },
-  backBtn: {
-    display: 'flex', alignItems: 'center', gap: 6,
-    background: 'none', border: `1px solid ${T.btnBorder}`,
-    color: T.btnColor, padding: '7px 14px', borderRadius: 8,
-    cursor: 'pointer', fontSize: 13, transition: 'all 0.2s',
-  },
-  headerTitle: {
-    display: 'flex', alignItems: 'center', gap: 10,
-    fontSize: 17, fontWeight: 700, color: T.textStrong,
-  },
-  plantBadge: {
-    background: T.accentBg, color: T.accentText,
-    border: `1px solid ${T.accentBorder}`,
-    padding: '2px 10px', borderRadius: 20, fontSize: 12, fontWeight: 500,
-  },
-  headerRight: {
-    display: 'flex', alignItems: 'center', gap: 8,
-  },
-  refreshBtn: {
-    background: 'none', border: `1px solid ${T.btnBorder}`,
-    color: T.btnColor, padding: 8, borderRadius: 8, cursor: 'pointer',
-    display: 'flex', alignItems: 'center', transition: 'all 0.2s',
-  },
-  themeBtn: {
-    background: T.accentBg, border: `1px solid ${T.accentBorder}`,
-    color: T.toggleIcon, padding: 8, borderRadius: 8, cursor: 'pointer',
-    display: 'flex', alignItems: 'center', transition: 'all 0.3s',
-  },
-  layout: {
-    display: 'grid', gridTemplateColumns: '280px 1fr 320px',
-    gap: 0, flex: 1, minHeight: 0,
-  },
-  leftPanel: {
-    borderRight: `1px solid ${T.panelBorder}`,
-    overflowY: 'auto', maxHeight: 'calc(100vh - 60px)',
-  },
-  centerPanel: {
-    overflowY: 'auto', maxHeight: 'calc(100vh - 60px)',
-    padding: '20px', display: 'flex', flexDirection: 'column', gap: 16,
-  },
-  rightPanel: {
-    borderLeft: `1px solid ${T.panelBorder}`,
-    overflowY: 'auto', maxHeight: 'calc(100vh - 60px)',
-    display: 'flex', flexDirection: 'column',
-  },
-  panelHeader: {
-    display: 'flex', alignItems: 'center', gap: 8,
-    padding: '14px 16px',
-    borderBottom: `1px solid ${T.panelBorder}`,
-    fontSize: 13, fontWeight: 600, color: T.textPanel,
-    background: T.panelHeaderBg,
-    position: 'sticky', top: 0, zIndex: 10,
-    backdropFilter: 'blur(8px)',
-  },
-  countBadge: {
-    background: T.accentBg, color: T.accentText,
-    border: `1px solid ${T.accentBorder}`,
-    borderRadius: 10, padding: '1px 7px', fontSize: 11, fontWeight: 700,
-    marginLeft: 'auto',
-  },
-  machineGrid: { padding: 12, display: 'flex', flexDirection: 'column', gap: 8 },
-  machineCard: { borderRadius: 10, padding: '12px 14px', cursor: 'pointer', transition: 'all 0.2s' },
-  machineCardTop: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 },
-  machineName: { fontSize: 13, fontWeight: 600, color: T.text },
-  statusDot: { width: 8, height: 8, borderRadius: '50%' },
-  machineType: { fontSize: 11, color: T.textMuted, marginBottom: 4 },
-  statusLabel: { fontSize: 10, fontWeight: 700, letterSpacing: '0.1em' },
-  currentJobTag: {
-    display: 'flex', alignItems: 'center', gap: 4,
-    background: 'rgba(34,197,94,0.1)', color: '#22c55e',
-    borderRadius: 4, padding: '2px 7px', fontSize: 10, marginTop: 6, width: 'fit-content',
-  },
-  pendingTag: {
-    background: 'rgba(245,158,11,0.1)', color: '#f59e0b',
-    borderRadius: 4, padding: '2px 7px', fontSize: 10, marginTop: 4, width: 'fit-content',
-  },
-  centerLoad: { display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 40 },
-  noSelection: {
-    flex: 1, display: 'flex', flexDirection: 'column',
-    alignItems: 'center', justifyContent: 'center', padding: 40,
-  },
-  machineHero: { borderRadius: 16, padding: '20px 22px', animation: 'slideUp 0.3s ease' },
-  heroTop: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 },
-  heroMachineName: { fontSize: 22, fontWeight: 700, color: T.textStrong },
-  heroMachineType: { fontSize: 13, color: T.textMuted, marginTop: 2 },
-  heroBadge: {
-    display: 'flex', alignItems: 'center', gap: 8,
-    borderRadius: 20, padding: '6px 14px',
-    fontSize: 12, fontWeight: 700, letterSpacing: '0.08em',
-  },
-  pulsingDot: { width: 8, height: 8, borderRadius: '50%', animation: 'pulse 1.5s ease-in-out infinite' },
-  timerRow: {
-    display: 'flex', alignItems: 'center', gap: 8,
-    background: T.timerBg, borderRadius: 8, padding: '8px 14px', marginBottom: 12,
-  },
-  timerLabel: { fontSize: 12, color: T.textMuted, flex: 1 },
-  timerValue: { fontSize: 20, fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: '#22c55e', letterSpacing: '0.05em' },
-  currentJobBox: { background: T.jobBoxBg, borderRadius: 10, padding: '14px 16px', marginBottom: 14 },
-  jobInfoRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
-  jobTitle: { fontSize: 15, fontWeight: 600, color: T.text },
-  jobPart: { display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: T.textMuted, marginTop: 3 },
-  priorityBadge: { borderRadius: 6, padding: '3px 9px', fontSize: 11, fontWeight: 600 },
-  progressBar: { height: 8, background: T.progressBg, borderRadius: 4, overflow: 'hidden', marginBottom: 6 },
-  progressFill: { height: '100%', borderRadius: 4, transition: 'width 0.5s ease', boxShadow: '0 0 8px currentColor' },
-  progressLabel: { display: 'flex', justifyContent: 'space-between', fontSize: 11, color: T.textMuted },
-  actionRow: { display: 'flex', gap: 10, flexWrap: 'wrap' },
-  actionBtn: {
-    display: 'flex', alignItems: 'center', gap: 7,
-    padding: '9px 18px', borderRadius: 9, border: 'none',
-    fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s',
-  },
-  modal: {
-    position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)',
-    display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999,
-    backdropFilter: 'blur(4px)',
-  },
-  modalBox: {
-    background: T.modalBg, border: `1px solid ${T.modalBorder}`,
-    borderRadius: 16, padding: '28px 32px', width: 360,
-    animation: 'slideUp 0.25s ease', boxShadow: '0 20px 60px rgba(0,0,0,0.4)',
-  },
-  modalTitle: {
-    display: 'flex', alignItems: 'center', gap: 10,
-    fontSize: 17, fontWeight: 700, color: T.textStrong, marginBottom: 10,
-  },
-  modalSub: { fontSize: 13, color: T.textMuted, marginBottom: 16, lineHeight: 1.5 },
-  modalInput: {
-    width: '100%', background: T.inputBg,
-    border: `1px solid ${T.inputBorder}`, borderRadius: 8,
-    color: T.text, padding: '10px 14px', fontSize: 14, outline: 'none',
-    boxSizing: 'border-box',
-  },
-  modalActions: { display: 'flex', gap: 10, marginTop: 16, justifyContent: 'flex-end' },
-  cancelBtn: {
-    padding: '9px 18px', borderRadius: 8, border: `1px solid ${T.btnBorder}`,
-    background: 'none', color: T.textMuted, cursor: 'pointer', fontSize: 13,
-  },
-  confirmBtn: {
-    display: 'flex', alignItems: 'center', gap: 6,
-    padding: '9px 20px', borderRadius: 8, border: 'none',
-    background: '#22c55e', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600,
-  },
-  logPanel: {
-    background: T.panelHeaderBg, borderRadius: 14,
-    border: `1px solid ${T.panelBorder}`, flex: 1,
-  },
-  logList: { padding: '8px 12px', display: 'flex', flexDirection: 'column', gap: 2 },
-  emptyLog: { color: T.textFaint, fontSize: 12, textAlign: 'center', padding: '20px 0' },
-  logItem: {
-    display: 'flex', alignItems: 'flex-start', gap: 10,
-    padding: '8px 6px', borderBottom: `1px solid ${T.logItemBorder}`,
-  },
-  logDot: { width: 8, height: 8, borderRadius: '50%', marginTop: 4, flexShrink: 0 },
-  logContent: { flex: 1, minWidth: 0 },
-  logStatus: { fontSize: 11, fontWeight: 700, letterSpacing: '0.07em' },
-  logNote: { fontSize: 12, color: T.textMuted, marginTop: 2, lineHeight: 1.4 },
-  logUnits: { display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: '#22c55e', marginTop: 2 },
-  logTime: { fontSize: 10, color: T.textFaint, flexShrink: 0, marginTop: 2 },
-  addJobBtn: {
-    display: 'flex', alignItems: 'center', gap: 5,
-    background: T.accentBg, color: T.accentText,
-    border: `1px solid ${T.accentBorder}`,
-    borderRadius: 7, padding: '5px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer',
-  },
-  addJobForm: {
-    margin: '0 12px 12px',
-    background: T.addFormBg, border: `1px solid ${T.addFormBorder}`,
-    borderRadius: 12, padding: '16px',
-    display: 'flex', flexDirection: 'column', gap: 8,
-    animation: 'fadeIn 0.2s ease',
-  },
-  formTitle: { fontSize: 13, fontWeight: 700, color: T.accentText, marginBottom: 2 },
-  formInput: {
-    background: T.inputBg, border: `1px solid ${T.inputBorder}`,
-    borderRadius: 7, color: T.text, padding: '9px 12px',
-    fontSize: 13, outline: 'none', width: '100%', boxSizing: 'border-box',
-  },
-  submitBtn: {
-    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-    background: T.accent, color: '#fff', border: 'none',
-    borderRadius: 8, padding: '10px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-  },
-  jobSection: { padding: '8px 12px' },
-  sectionLabel: {
-    fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', color: T.textFaint,
-    marginBottom: 6, paddingLeft: 2,
-  },
-  toast: {
-    position: 'fixed', top: 70, right: 20, zIndex: 9999,
-    display: 'flex', alignItems: 'center', gap: 8,
-    padding: '12px 18px', borderRadius: 10, color: '#fff',
-    fontSize: 13, fontWeight: 600, boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
-    animation: 'slideUp 0.3s ease',
-  },
-});
-
